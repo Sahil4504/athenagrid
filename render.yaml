@@ -1,0 +1,43 @@
+# Render Blueprint (must live at the repo root). Builds the API from the
+# transport-system/ subfolder and provisions a free managed Postgres.
+
+databases:
+  - name: athenagrid-db
+    plan: free
+
+services:
+  - type: web
+    name: athenagrid-api
+    runtime: node
+    plan: free
+    rootDir: transport-system
+    buildCommand: >-
+      npm install &&
+      npm run build --workspace @athenagrid/shared &&
+      npm --workspace @athenagrid/api run prisma:generate &&
+      npm run build --workspace @athenagrid/api
+    startCommand: >-
+      npx prisma db push --schema apps/api/prisma/schema.prisma --skip-generate &&
+      node apps/api/dist/main.js
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: athenagrid-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: API_PREFIX
+        value: api/v1
+      - key: CARRIER_COMMISSION_RATE
+        value: "0.08"
+      - key: SHIPPER_FEE_RATE
+        value: "0.04"
+      - key: AUTO_VERIFY_CARRIERS
+        value: "true"
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: NODE_VERSION
+        value: "20"
