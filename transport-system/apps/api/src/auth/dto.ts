@@ -7,7 +7,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { CarrierType, UserRole } from '@athenagrid/shared';
+import { CarrierType, ShipperType, UserRole } from '@athenagrid/shared';
 
 export class RegisterDto {
   @IsEnum(UserRole)
@@ -26,6 +26,11 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  // SHIPPER: FARMER or INDUSTRY
+  @IsOptional()
+  @IsEnum(ShipperType)
+  shipperType?: ShipperType;
 
   // CARRIER: COMPANY (a fleet operator) or INDIVIDUAL (owner-operator driver).
   @IsOptional()

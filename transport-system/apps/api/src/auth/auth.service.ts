@@ -1,7 +1,14 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { AuthTokens, CarrierType, JwtPayload, UserRole, VerificationStatus } from '@athenagrid/shared';
+import {
+  AuthTokens,
+  CarrierType,
+  JwtPayload,
+  ShipperType,
+  UserRole,
+  VerificationStatus,
+} from '@athenagrid/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { hashPassword, verifyPassword } from '../common/password';
 import { LoginDto, RegisterDto } from './dto';
@@ -34,6 +41,8 @@ export class AuthService {
         passwordHash,
         fullName: dto.fullName,
         phone: dto.phone,
+        shipperType:
+          dto.role === UserRole.SHIPPER ? (dto.shipperType ?? ShipperType.FARMER) : undefined,
         // Create the role-specific profile in the same write.
         carrierProfile:
           dto.role === UserRole.CARRIER
@@ -71,6 +80,20 @@ export class AuthService {
           capacityKg: dto.vehicleCapacityKg ?? 3000,
           volumeM3: 15,
           refrigerated: dto.vehicleRefrigerated ?? false,
+        },
+      });
+    }
+
+    // Company carrier: a starter fleet vehicle so they can bid immediately (fleet
+    // management UI comes later). The company itself runs its won deliveries.
+    if (dto.role === UserRole.CARRIER && !isIndividual && user.carrierProfile) {
+      await this.prisma.vehicle.create({
+        data: {
+          carrierId: user.carrierProfile.id,
+          plate: 'FLEET-1',
+          capacityKg: 8000,
+          volumeM3: 40,
+          refrigerated: true,
         },
       });
     }

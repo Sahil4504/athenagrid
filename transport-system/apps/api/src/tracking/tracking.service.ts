@@ -27,43 +27,60 @@ export class TrackingService {
     return trip;
   }
 
-  /** Trips visible to the caller: a driver's assigned trips, or a shipper's job trips. */
+  /** Trips visible to the caller. */
   async listTrips(userId: string, role: string) {
+    const withJob = { job: { include: { settlement: true } } };
+    // The winning carrier (Transport Company OR Individual) executes its own deliveries:
+    // return every trip whose vehicle belongs to this carrier.
+    if (role === 'CARRIER') {
+      const carrier = await this.prisma.carrierProfile.findUnique({ where: { userId } });
+      if (!carrier) return [];
+      return this.prisma.trip.findMany({
+        where: { vehicle: { carrierId: carrier.id } },
+        include: withJob,
+        orderBy: { createdAt: 'desc' },
+      });
+    }
     if (role === 'DRIVER') {
       const driver = await this.prisma.driverProfile.findUnique({ where: { userId } });
       if (!driver) return [];
       return this.prisma.trip.findMany({
         where: { driverId: driver.id },
-        include: { job: { include: { settlement: true } } },
+        include: withJob,
         orderBy: { createdAt: 'desc' },
       });
     }
     if (role === 'SHIPPER') {
       return this.prisma.trip.findMany({
         where: { job: { shipperId: userId } },
-        include: { job: { include: { settlement: true } } },
+        include: withJob,
         orderBy: { createdAt: 'desc' },
       });
     }
     return [];
   }
 
-  /** Verify the caller is the driver assigned to this trip (company driver or individual). */
-  private async assertAssignedDriver(tripId: string, userId: string) {
+  /** Allow the assigned driver OR the carrier that owns the trip (company/individual). */
+  private async assertTripActor(tripId: string, userId: string) {
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },
-      include: { driver: { select: { userId: true } } },
+      include: {
+        driver: { select: { userId: true } },
+        vehicle: { select: { carrier: { select: { userId: true } } } },
+      },
     });
     if (!trip) throw new NotFoundException('Trip not found');
-    if (!trip.driver || trip.driver.userId !== userId) {
-      throw new ForbiddenException('You are not the driver assigned to this trip');
+    const isDriver = trip.driver?.userId === userId;
+    const isCarrierOwner = trip.vehicle?.carrier?.userId === userId;
+    if (!isDriver && !isCarrierOwner) {
+      throw new ForbiddenException('You cannot update this trip');
     }
     return trip;
   }
 
   /** Append a location ping and rebroadcast to the trip room. */
   async recordLocation(driverUserId: string, tripId: string, lat: number, lng: number) {
-    await this.assertAssignedDriver(tripId, driverUserId);
+    await this.assertTripActor(tripId, driverUserId);
 
     await this.prisma.$transaction([
       this.prisma.tripEvent.create({ data: { tripId, lat, lng } }),
@@ -82,7 +99,7 @@ export class TrackingService {
 
   /** Advance the trip state machine (validated against TRIP_TRANSITIONS). */
   async advanceStatus(requesterUserId: string, tripId: string, next: TripStatus) {
-    const trip = await this.assertAssignedDriver(tripId, requesterUserId);
+    const trip = await this.assertTripActor(tripId, requesterUserId);
 
     const allowed = TRIP_TRANSITIONS[trip.status as TripStatus] ?? [];
     if (!allowed.includes(next)) {

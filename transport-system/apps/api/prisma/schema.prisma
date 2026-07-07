@@ -33,6 +33,11 @@ enum CarrierType {
   INDIVIDUAL
 }
 
+enum ShipperType {
+  FARMER
+  INDUSTRY
+}
+
 enum VerificationDocType {
   DRIVING_LICENCE
   VEHICLE_REGISTRATION
@@ -76,14 +81,15 @@ enum TripStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           String       @id @default(cuid())
   role         UserRole
-  email        String   @unique
+  email        String       @unique
   phone        String?
   passwordHash String
   fullName     String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  shipperType  ShipperType? // FARMER | INDUSTRY, set for SHIPPER users
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   carrierProfile CarrierProfile?
   driverProfile  DriverProfile?

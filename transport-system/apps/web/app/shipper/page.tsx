@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { api } from '../../lib/api-client';
+import { api, getToken } from '../../lib/api-client';
+import { useRequireRole } from '../../lib/auth';
 import { useRealtime } from '../../lib/useRealtime';
 import { TripStepper } from '../../components/TripStepper';
-import { AuthPanel } from '../../components/AuthPanel';
 
 export default function ShipperPage() {
-  const [token, setToken] = useState<string | null>(null);
+  const { user, ready } = useRequireRole('SHIPPER');
+  const token = getToken();
   const [jobs, setJobs] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
   const [bidList, setBidList] = useState<any[]>([]);
@@ -21,11 +22,6 @@ export default function ShipperPage() {
     setJobs([...open, ...awarded, ...transit]);
   }
 
-  async function afterAuth(t: string) {
-    setToken(t);
-    await refresh();
-  }
-
   async function open(id: string) {
     const [job, bids] = await Promise.all([api.getJob(id), api.listBids(id)]);
     setSelected(job);
@@ -33,19 +29,18 @@ export default function ShipperPage() {
   }
 
   useEffect(() => {
+    if (ready && user) refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, user]);
+
+  useEffect(() => {
     if (selected && events.length) open(selected.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events.length]);
 
-  if (!token)
-    return (
-      <AuthPanel
-        title="Shipper sign-in"
-        subtitle="Post transport jobs and award the best bid."
-        accounts={[{ label: 'Fresno Farm Co', email: 'farmer@athenagrid.dev' }]}
-        onAuthed={afterAuth}
-      />
-    );
+  if (!ready || !user) return <p className="muted" style={{ padding: 40 }}>Loading…</p>;
+
+  const shipperKind = user.shipperType === 'INDUSTRY' ? 'Industry' : 'Farmer';
 
   // Scored bids: recommended first, then by score.
   const bids = [...bidList].sort(
@@ -55,7 +50,7 @@ export default function ShipperPage() {
 
   return (
     <>
-      <h1 style={{ fontSize: 28 }}>Shipper dashboard</h1>
+      <h1 style={{ fontSize: 28 }}>{shipperKind} dashboard</h1>
       <div className="row" style={{ alignItems: 'flex-start' }}>
         <div style={{ flex: 1, minWidth: 300 }}>
           <PostJob onPosted={refresh} />

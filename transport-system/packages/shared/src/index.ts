@@ -25,6 +25,11 @@ export enum CarrierType {
   INDIVIDUAL = 'INDIVIDUAL',
 }
 
+export enum ShipperType {
+  FARMER = 'FARMER',
+  INDUSTRY = 'INDUSTRY',
+}
+
 export enum VerificationDocType {
   DRIVING_LICENCE = 'DRIVING_LICENCE',
   VEHICLE_REGISTRATION = 'VEHICLE_REGISTRATION',

@@ -9,8 +9,15 @@ async function main() {
   // Shipper (a farmer)
   const shipper = await prisma.user.upsert({
     where: { email: 'farmer@athenagrid.dev' },
-    update: {},
-    create: { role: 'SHIPPER', email: 'farmer@athenagrid.dev', passwordHash: pw, fullName: 'Fresno Farm Co' },
+    update: { shipperType: 'FARMER' },
+    create: { role: 'SHIPPER', email: 'farmer@athenagrid.dev', passwordHash: pw, fullName: 'Fresno Farm Co', shipperType: 'FARMER' },
+  });
+
+  // Shipper (an industry — sells essentials / buys crops)
+  await prisma.user.upsert({
+    where: { email: 'industry@athenagrid.dev' },
+    update: { shipperType: 'INDUSTRY' },
+    create: { role: 'SHIPPER', email: 'industry@athenagrid.dev', passwordHash: pw, fullName: 'AgriSupply Co', shipperType: 'INDUSTRY' },
   });
 
   // Admin
@@ -154,9 +161,15 @@ async function main() {
     });
   }
 
+  // Backfill shipperType on any older shipper rows.
+  await prisma.user.updateMany({
+    where: { role: 'SHIPPER', shipperType: null },
+    data: { shipperType: 'FARMER' },
+  });
+
   console.log(
-    'Seed complete (password123): farmer@ (shipper), carrier@ + carrier2@ (companies), ' +
-      'indie@ (individual bidder+driver), driver@/driver2@ (drivers), admin@ — all @athenagrid.dev',
+    'Seed complete (password123): farmer@ + industry@ (shippers), carrier@ + carrier2@ ' +
+      '(transport companies), indie@ (individual driver), admin@ — all @athenagrid.dev',
   );
 }
 

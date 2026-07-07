@@ -8,8 +8,18 @@ const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
  * backend contract change surfaces here as a compile error, not a runtime bug.
  * In-memory token store (swap for cookies/secure storage in production).
  */
-let accessToken: string | null = null;
-export const setToken = (t: string | null) => (accessToken = t);
+const TOKEN_KEY = 'ag_token';
+let accessToken: string | null =
+  typeof window !== 'undefined' ? window.localStorage.getItem(TOKEN_KEY) : null;
+
+export const getToken = () => accessToken;
+export const setToken = (t: string | null) => {
+  accessToken = t;
+  if (typeof window !== 'undefined') {
+    if (t) window.localStorage.setItem(TOKEN_KEY, t);
+    else window.localStorage.removeItem(TOKEN_KEY);
+  }
+};
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
