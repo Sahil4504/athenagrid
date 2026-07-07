@@ -13,7 +13,8 @@ describe('BidsService — verification gate', () => {
     };
     const users: any = { carrierProfileId: jest.fn().mockResolvedValue('car_1') };
     const realtime: any = { emitToJob: jest.fn() };
-    return { service: new BidsService(prisma, users, realtime), prisma };
+    const pricing: any = { settle: jest.fn(), rankBids: jest.fn(), computeBand: jest.fn() };
+    return { service: new BidsService(prisma, users, realtime, pricing), prisma };
   };
 
   it('rejects a bid from an UNVERIFIED carrier before touching the auction', async () => {
