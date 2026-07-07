@@ -1,0 +1,13 @@
+# Never commit dependencies, build output, local DB data, or secrets.
+node_modules/
+dist/
+.next/
+out/
+*.tsbuildinfo
+.devdata/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+Thumbs.db

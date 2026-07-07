@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# local database (embedded Postgres data — never commit)
+.devdata/
+
+# secrets & env
+.env
+.env.local
+.env.*.local
+
+# logs & OS junk
+*.log
+.DS_Store
+Thumbs.db

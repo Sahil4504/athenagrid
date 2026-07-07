@@ -1,0 +1,21 @@
+# Netlify config for the AthenaGrid web app (static export).
+# If your GitHub repo root is the parent "AthenaGrid" folder, set the site's
+# "Base directory" to `transport-system` in the Netlify UI so it finds this file.
+#
+# Set these environment variables in the Netlify UI (Site settings → Environment)
+# to your Render backend URL before the first build:
+#   NEXT_PUBLIC_API_URL = https://<your-render-api>.onrender.com/api/v1
+#   NEXT_PUBLIC_WS_URL  = https://<your-render-api>.onrender.com
+
+[build]
+  command = "npm install && npm run build --workspace @athenagrid/shared && npm run build --workspace @athenagrid/web"
+  publish = "apps/web/out"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA-style fallback for client routes (harmless for the exported pages).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

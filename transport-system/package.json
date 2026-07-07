@@ -1,0 +1,26 @@
+{
+  "name": "athenagrid-transport",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AthenaGrid transportation marketplace — jobs, carrier verification, real-time bidding, live tracking.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "dev:api": "npm run start:dev --workspace @athenagrid/api",
+    "dev:web": "npm run dev --workspace @athenagrid/web",
+    "build": "npm run build --workspaces --if-present",
+    "db:migrate": "npm run prisma:migrate --workspace @athenagrid/api",
+    "db:seed": "npm run seed --workspace @athenagrid/api"
+  },
+  "devDependencies": {
+    "embedded-postgres": "18.4.0-beta.17"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

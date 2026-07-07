@@ -1,0 +1,278 @@
+// AthenaGrid Transport — data model
+// PostGIS note: lat/lng are stored as floats for Prisma type-safety. A generated
+// geography(Point,4326) column + GiST index is added via prisma/migrations SQL
+// (see 0002_postgis.sql) so radius queries stay index-backed. See GeoService.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // PostGIS is enabled via raw SQL (prisma/postgis.sql) rather than the Prisma
+  // extensions preview feature, so the geo layer stays decoupled from the ORM.
+}
+
+enum UserRole {
+  SHIPPER
+  CARRIER
+  DRIVER
+  ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum CarrierType {
+  COMPANY
+  INDIVIDUAL
+}
+
+enum VerificationDocType {
+  DRIVING_LICENCE
+  VEHICLE_REGISTRATION
+  INSURANCE
+  COLD_CHAIN_CERT
+  BUSINESS_LICENCE
+}
+
+enum DocReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum JobStatus {
+  DRAFT
+  OPEN
+  AWARDED
+  IN_TRANSIT
+  DELIVERED
+  CLOSED
+  EXPIRED
+  CANCELLED
+}
+
+enum BidStatus {
+  ACTIVE
+  WON
+  REJECTED
+  WITHDRAWN
+}
+
+enum TripStatus {
+  ASSIGNED
+  EN_ROUTE_TO_PICKUP
+  AT_PICKUP
+  LOADED
+  IN_TRANSIT
+  AT_DROPOFF
+  DELIVERED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  role         UserRole
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  fullName     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  carrierProfile CarrierProfile?
+  driverProfile  DriverProfile?
+  jobs           Job[]           @relation("ShipperJobs")
+
+  @@index([role])
+}
+
+model CarrierProfile {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName        String
+  type               CarrierType        @default(COMPANY)
+  fleetSize          Int                @default(0)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  vehicles  Vehicle[]
+  drivers   DriverProfile[]
+  documents VerificationDocument[]
+  bids      Bid[]
+
+  @@index([verificationStatus])
+}
+
+model DriverProfile {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  carrierId          String?
+  carrier            CarrierProfile?    @relation(fields: [carrierId], references: [id])
+  licenceNo          String
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  createdAt          DateTime           @default(now())
+
+  trips Trip[]
+}
+
+model Vehicle {
+  id           String         @id @default(cuid())
+  carrierId    String
+  carrier      CarrierProfile @relation(fields: [carrierId], references: [id], onDelete: Cascade)
+  plate        String
+  capacityKg   Float
+  volumeM3     Float
+  refrigerated Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+
+  bids  Bid[]
+  trips Trip[]
+
+  @@index([carrierId])
+}
+
+model VerificationDocument {
+  id         String              @id @default(cuid())
+  carrierId  String
+  carrier    CarrierProfile      @relation(fields: [carrierId], references: [id], onDelete: Cascade)
+  type       VerificationDocType
+  s3Key      String
+  status     DocReviewStatus     @default(PENDING)
+  reviewedBy String?
+  reviewNote String?
+  reviewedAt DateTime?
+  createdAt  DateTime            @default(now())
+
+  @@index([carrierId, status])
+}
+
+model Job {
+  id                String    @id @default(cuid())
+  shipperId         String
+  shipper           User      @relation("ShipperJobs", fields: [shipperId], references: [id])
+  status            JobStatus @default(DRAFT)
+
+  // Pickup
+  pickupLat     Float
+  pickupLng     Float
+  pickupAddress String?
+
+  // Dropoff
+  dropoffLat     Float
+  dropoffLng     Float
+  dropoffAddress String?
+
+  // Cargo (mirrors ML SalesDistribution / CargoProfile)
+  cropType          String
+  weightKg          Float
+  volumeM3          Float
+  perishabilityIndex Float  @default(0)
+  coldChainRequired Boolean @default(false)
+
+  pickupWindowStart DateTime
+  pickupWindowEnd   DateTime
+  biddingClosesAt   DateTime
+  budgetCeiling     Float?
+
+  // Fair-price band computed by the PricingService at creation.
+  referencePrice Float?
+  floorPrice     Float?
+  ceilingPrice   Float?
+
+  awardedBidId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bids       Bid[]
+  trip       Trip?
+  settlement Settlement?
+
+  @@index([status])
+  @@index([biddingClosesAt])
+}
+
+// Money split created when a bid is awarded (farmer bill + driver payout + platform take).
+model Settlement {
+  id                    String   @id @default(cuid())
+  jobId                 String   @unique
+  job                   Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  transportPrice        Float
+  carrierCommissionRate Float
+  shipperFeeRate        Float
+  carrierCommission     Float
+  shipperFee            Float
+  farmerTotal           Float
+  driverPayout          Float
+  platformRevenue       Float
+  createdAt             DateTime @default(now())
+}
+
+model Bid {
+  id         String         @id @default(cuid())
+  jobId      String
+  job        Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  carrierId  String
+  carrier    CarrierProfile @relation(fields: [carrierId], references: [id])
+  vehicleId  String
+  vehicle    Vehicle        @relation(fields: [vehicleId], references: [id])
+  amount     Float
+  etaMinutes Int
+  message    String?
+  status     BidStatus      @default(ACTIVE)
+  createdAt  DateTime       @default(now())
+
+  @@unique([jobId, carrierId]) // one active bid per carrier per job
+  @@index([jobId, status])
+}
+
+model Trip {
+  id         String        @id @default(cuid())
+  jobId      String        @unique
+  job        Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  driverId   String?
+  driver     DriverProfile? @relation(fields: [driverId], references: [id])
+  vehicleId  String
+  vehicle    Vehicle       @relation(fields: [vehicleId], references: [id])
+  status     TripStatus    @default(ASSIGNED)
+  currentLat Float?
+  currentLng Float?
+  startedAt  DateTime?
+  deliveredAt DateTime?
+  createdAt  DateTime      @default(now())
+
+  events TripEvent[]
+}
+
+model TripEvent {
+  id        String      @id @default(cuid())
+  tripId    String
+  trip      Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  status    TripStatus?
+  lat       Float?
+  lng       Float?
+  createdAt DateTime    @default(now())
+
+  @@index([tripId, createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  entity    String
+  entityId  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+}
