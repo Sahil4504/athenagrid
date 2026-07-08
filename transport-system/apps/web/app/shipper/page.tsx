@@ -53,9 +53,11 @@ export default function ShipperPage() {
       <h1 style={{ fontSize: 28 }}>{shipperKind} dashboard</h1>
       <div className="row" style={{ alignItems: 'flex-start' }}>
         <div style={{ flex: 1, minWidth: 300 }}>
-          <PostJob onPosted={refresh} />
-          <h2 style={{ marginTop: 22 }}>Jobs</h2>
-          {jobs.length === 0 && <p className="muted">No jobs yet — post one above.</p>}
+          <div className="banner" style={{ marginBottom: 14 }}>
+            📦 Deliveries from your <a className="link" href="/marketplace">marketplace orders</a> appear here to award and track.
+          </div>
+          <h2 style={{ marginTop: 4 }}>My delivery jobs</h2>
+          {jobs.length === 0 && <p className="muted">No delivery jobs yet — place an order in the marketplace.</p>}
           {jobs.map((j) => (
             <div key={j.id} className="card" style={{ borderColor: selected?.id === j.id ? 'var(--green-500)' : undefined }}>
               <div className="between">
@@ -119,58 +121,6 @@ export default function ShipperPage() {
         )}
       </div>
     </>
-  );
-}
-
-function PostJob({ onPosted }: { onPosted: () => void }) {
-  const [cropType, setCrop] = useState('Tomatoes');
-  const [weightKg, setWeight] = useState(3000);
-  const [pickup, setPickup] = useState('Salinas, CA');
-  const [dropoff, setDropoff] = useState('San Francisco, CA');
-  const [cold, setCold] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [ok, setOk] = useState('');
-
-  async function post() {
-    setBusy(true); setOk('');
-    try {
-      const now = Date.now();
-      await api.createJob({
-        pickup: { lat: 36.6777, lng: -121.6555, address: pickup },
-        dropoff: { lat: 37.7749, lng: -122.4194, address: dropoff },
-        cargo: { cropType, weightKg: Number(weightKg), volumeM3: 18, perishabilityIndex: cold ? 0.8 : 0.3, coldChainRequired: cold },
-        pickupWindowStart: new Date(now + 6 * 3600_000).toISOString(),
-        pickupWindowEnd: new Date(now + 12 * 3600_000).toISOString(),
-        biddingClosesAt: new Date(now + 3 * 3600_000).toISOString(),
-        budgetCeiling: 1500,
-      } as any);
-      setOk('✓ Job posted — carriers can bid now.');
-      onPosted();
-    } finally { setBusy(false); }
-  }
-
-  return (
-    <div className="card pop">
-      <h3>Post a transport job</h3>
-      {ok && <div className="banner" style={{ marginTop: 8 }}>{ok}</div>}
-      <div className="row">
-        <div className="field" style={{ flex: 2 }}><label>Crop</label>
-          <input value={cropType} onChange={(e) => setCrop(e.target.value)} /></div>
-        <div className="field" style={{ flex: 1 }}><label>Weight (kg)</label>
-          <input type="number" value={weightKg} onChange={(e) => setWeight(Number(e.target.value))} /></div>
-      </div>
-      <div className="row">
-        <div className="field" style={{ flex: 1 }}><label>Pickup</label>
-          <input value={pickup} onChange={(e) => setPickup(e.target.value)} /></div>
-        <div className="field" style={{ flex: 1 }}><label>Dropoff</label>
-          <input value={dropoff} onChange={(e) => setDropoff(e.target.value)} /></div>
-      </div>
-      <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
-        <input type="checkbox" style={{ width: 'auto' }} checked={cold} onChange={(e) => setCold(e.target.checked)} />
-        ❄ Requires refrigerated / cold-chain transport
-      </label>
-      <button className="btn" style={{ marginTop: 12 }} disabled={busy} onClick={post}>{busy ? 'Posting…' : 'Post job'}</button>
-    </div>
   );
 }
 

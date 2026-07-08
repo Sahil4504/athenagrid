@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { hashPassword } from '../src/common/password';
+import { US_CITIES, PRODUCTS, INDUSTRY_SUFFIXES } from './seed-data';
 
 const prisma = new PrismaClient();
 
@@ -168,44 +169,49 @@ async function main() {
     data: { shipperType: 'FARMER' },
   });
 
-  // Dummy industries (vendors of farming essentials) with catalogs — seed once.
+  // Dummy industries across US states with a realistic catalog.
+  // Refresh outdated dummy vendors (e.g. the old 3) when it's safe — no orders reference them.
+  const existingIndustries = await prisma.industry.count();
+  if (existingIndustries > 0 && existingIndustries < US_CITIES.length && (await prisma.order.count()) === 0) {
+    await prisma.industry.deleteMany({}); // cascades to CatalogItem
+  }
   if ((await prisma.industry.count()) === 0) {
-    // NOTE: no emojis stored in the DB (local embedded Postgres uses WIN1252 which
-    // can't hold them). The UI renders an icon by category instead.
-    const industries = [
-      {
-        name: 'Fresno AgriSupply', address: '900 Ag Way', city: 'Fresno', state: 'CA', postalCode: '93721', lat: 36.7378, lng: -119.7871,
-        items: [
-          { name: 'Tomato Seeds', category: 'SEEDS', unit: 'bag', pricePerUnit: 45, weightKgPerUnit: 1 },
-          { name: 'Organic Pesticide', category: 'PESTICIDES', unit: 'litre', pricePerUnit: 30, weightKgPerUnit: 1.2 },
-          { name: 'NPK Fertilizer', category: 'FERTILIZER', unit: 'bag', pricePerUnit: 60, weightKgPerUnit: 50 },
-          { name: 'Hand Trowel', category: 'TOOLS', unit: 'piece', pricePerUnit: 12, weightKgPerUnit: 0.5 },
-        ],
-      },
-      {
-        name: 'Salinas Farm Depot', address: '210 Valley Blvd', city: 'Salinas', state: 'CA', postalCode: '93901', lat: 36.6777, lng: -121.6555,
-        items: [
-          { name: 'Tomato Seeds', category: 'SEEDS', unit: 'bag', pricePerUnit: 42, weightKgPerUnit: 1 },
-          { name: 'Corn Seeds', category: 'SEEDS', unit: 'bag', pricePerUnit: 38, weightKgPerUnit: 1 },
-          { name: 'Fungicide', category: 'PESTICIDES', unit: 'litre', pricePerUnit: 34, weightKgPerUnit: 1.2 },
-          { name: 'Pruning Shears', category: 'TOOLS', unit: 'piece', pricePerUnit: 18, weightKgPerUnit: 0.4 },
-        ],
-      },
-      {
-        name: 'Bakersfield Growers Mart', address: '55 Harvest St', city: 'Bakersfield', state: 'CA', postalCode: '93301', lat: 35.3733, lng: -119.0187,
-        items: [
-          { name: 'NPK Fertilizer', category: 'FERTILIZER', unit: 'bag', pricePerUnit: 55, weightKgPerUnit: 50 },
-          { name: 'Compost', category: 'FERTILIZER', unit: 'bag', pricePerUnit: 25, weightKgPerUnit: 40 },
-          { name: 'Organic Pesticide', category: 'PESTICIDES', unit: 'litre', pricePerUnit: 28, weightKgPerUnit: 1.2 },
-          { name: 'Hand Trowel', category: 'TOOLS', unit: 'piece', pricePerUnit: 10, weightKgPerUnit: 0.5 },
-        ],
-      },
-    ];
-    for (const ind of industries) {
-      const { items, ...data } = ind;
-      await prisma.industry.create({
-        data: { ...data, catalog: { create: items as any } },
+    let ci = 0;
+    for (const city of US_CITIES) {
+      ci++;
+      const suffix = INDUSTRY_SUFFIXES[ci % INDUSTRY_SUFFIXES.length];
+      const industry = await prisma.industry.create({
+        data: {
+          name: `${city.c} ${suffix}`,
+          address: `${100 + (ci % 900)} Agriculture Ave`,
+          city: city.c,
+          state: city.s,
+          postalCode: '00000',
+          lat: city.lat,
+          lng: city.lng,
+        },
       });
+      // Each vendor stocks a rotating subset of ~12 products with ~±12% price variation.
+      const start = (ci * 3) % PRODUCTS.length;
+      const seen = new Set<string>();
+      const items = [];
+      for (let k = 0; k < 12; k++) {
+        const p = PRODUCTS[(start + k) % PRODUCTS.length];
+        if (seen.has(p.name)) continue;
+        seen.add(p.name);
+        const variance = 1 + ((((ci + k) % 7) - 3) * 0.04);
+        items.push({
+          industryId: industry.id,
+          name: p.name,
+          brand: p.brand,
+          category: p.category as any,
+          unit: p.unit,
+          pricePerUnit: Math.round(p.price * variance * 100) / 100,
+          weightKgPerUnit: p.weight,
+          imageUrl: p.img,
+        });
+      }
+      await prisma.catalogItem.createMany({ data: items });
     }
   }
 

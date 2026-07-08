@@ -141,11 +141,13 @@ model CatalogItem {
   industryId      String
   industry        Industry        @relation(fields: [industryId], references: [id], onDelete: Cascade)
   name            String
+  brand           String?
   category        ProductCategory
-  unit            String // e.g. "kg", "bag", "litre", "piece"
+  unit            String // e.g. "bag", "jug", "gal", "50 lb bag"
   pricePerUnit    Float
   weightKgPerUnit Float           @default(1)
-  icon            String? // emoji for the UI
+  imageUrl        String?
+  icon            String? // legacy; UI now renders a category icon client-side
 
   orderItems OrderItem[]
 

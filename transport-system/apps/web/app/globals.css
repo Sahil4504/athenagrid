@@ -148,6 +148,21 @@ input:focus, select:focus { outline: none; border-color: var(--green-500); box-s
 .section-tag { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--harvest-dark); margin: 30px 0 10px; }
 .about { background: var(--green-50); border: 1px solid var(--green-100); border-radius: 16px; padding: 26px; margin-top: 26px; }
 
+/* ---------- marketplace product cards ---------- */
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(184px, 1fr)); gap: 14px; }
+.pcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+.pcard:hover { border-color: var(--green-100); }
+.pimg { width: 100%; height: 118px; object-fit: cover; display: block; background: var(--green-50); }
+.pimg.fallback { display: flex; align-items: center; justify-content: center; font-size: 40px; }
+.pbody { padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.pbrand { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--harvest-dark); }
+.pname { font-size: 14px; font-weight: 600; line-height: 1.25; }
+.pvendor { font-size: 12px; color: var(--muted); }
+.pprice { font-size: 17px; font-weight: 800; color: var(--green-900); }
+.filterbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 16px; }
+.fchip { font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; cursor: pointer; color: var(--muted); }
+.fchip.on { background: var(--green-600); color: #fff; border-color: var(--green-600); }
+
 /* ---------- misc ---------- */
 .banner { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; background: var(--green-50); border: 1px solid var(--green-100); color: var(--green-900); font-size: 14px; margin-bottom: 16px; }
 .banner.warn { background: #fffbeb; border-color: #fde68a; color: var(--harvest-dark); }
