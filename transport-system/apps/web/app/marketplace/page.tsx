@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api-client';
@@ -55,15 +55,20 @@ export default function MarketplacePage() {
   const [sort, setSort] = useState('near');
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(true);
+  const [zipInput, setZipInput] = useState(''); // the ZIP being typed
+  const [deliverZip, setDeliverZip] = useState(''); // the applied delivery ZIP
 
   useEffect(() => {
     if (ready && user && user.shipperType !== 'FARMER') router.replace('/shipper');
   }, [ready, user, router]);
 
-  async function load() {
+  async function load(zip = deliverZip) {
     setLoading(true);
     try {
-      const [ind, ord] = await Promise.all([api.marketplaceIndustries(), api.marketplaceOrders()]);
+      const [ind, ord] = await Promise.all([
+        api.marketplaceIndustries(zip || undefined),
+        api.marketplaceOrders(),
+      ]);
       setIndustries(ind);
       setOrders(ord);
     } finally {
@@ -74,6 +79,24 @@ export default function MarketplacePage() {
     if (ready && user?.shipperType === 'FARMER') load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, user]);
+
+  function applyZip(e: FormEvent) {
+    e.preventDefault();
+    const z = zipInput.replace(/\D/g, '').slice(0, 5);
+    if (z.length < 3) {
+      setMsg('Enter a valid US ZIP (at least 3 digits) to find nearby suppliers.');
+      return;
+    }
+    setMsg('');
+    setDeliverZip(z);
+    load(z);
+  }
+  function resetZip() {
+    setZipInput('');
+    setDeliverZip('');
+    setMsg('');
+    load('');
+  }
 
   const vendorStates = useMemo(
     () => Array.from(new Set(industries.map((i) => i.state).filter(Boolean))),
@@ -136,9 +159,13 @@ export default function MarketplacePage() {
     if (!cart) return;
     setMsg('');
     try {
-      await api.createOrder({ industryId: cart.industryId, items: cart.lines.map((l) => ({ catalogItemId: l.catalogItemId, qty: l.qty })) });
+      await api.createOrder({
+        industryId: cart.industryId,
+        items: cart.lines.map((l) => ({ catalogItemId: l.catalogItemId, qty: l.qty })),
+        deliverPostalCode: deliverZip || undefined,
+      });
       setCart(null);
-      setMsg('✓ Order placed! A delivery job was posted — award a carrier on your Farmer dashboard to complete it.');
+      setMsg(`✓ Order placed! A delivery job was posted${deliverZip ? ` to ZIP ${deliverZip}` : ''} — award a carrier on your Farmer dashboard to complete it.`);
       await load();
     } catch (e: any) {
       setMsg(`Could not place order: ${e.message}`);
@@ -157,8 +184,24 @@ export default function MarketplacePage() {
             <span aria-hidden>🔎</span>
             <input placeholder="Search seed, fertilizer, sprayers, brands…" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
+          <form className="mkt-deliver" onSubmit={applyZip}>
+            <span className="mkt-deliver-pin" aria-hidden>📍</span>
+            <input
+              className="mkt-zip"
+              placeholder="Deliver to a different ZIP (e.g. 48901)"
+              value={zipInput}
+              onChange={(e) => setZipInput(e.target.value)}
+              inputMode="numeric"
+              aria-label="Delivery ZIP code"
+            />
+            <button className="btn sm" type="submit">Find suppliers</button>
+          </form>
           <div className="mkt-trust">
-            <span>📍 Delivering to <strong>{user.address ?? 'your farm'}</strong></span>
+            <span>
+              {deliverZip
+                ? <>🎯 Showing suppliers near ZIP <strong>{deliverZip}</strong> · <button type="button" className="mkt-reset" onClick={resetZip}>use my address</button></>
+                : <>📦 Delivering to <strong>{user.address ?? 'your farm'}</strong></>}
+            </span>
             {industries.length > 0 && <span>🏬 {industries.length} suppliers nearby{vendorStates.length ? ` · ${vendorStates.join(', ')}` : ''}</span>}
           </div>
         </div>
@@ -253,6 +296,7 @@ export default function MarketplacePage() {
             ) : (
               <>
                 <p className="muted cartfrom">From <strong>{cart.name}</strong> · {cart.city}</p>
+                <p className="muted cartfrom" style={{ marginTop: -6 }}>Deliver to <strong>{deliverZip ? `ZIP ${deliverZip}` : (user.address ?? 'your farm')}</strong></p>
                 <div className="cartlines">
                   {cart.lines.map((l) => (
                     <div key={l.catalogItemId} className="cartline">

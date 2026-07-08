@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtPayload, UserRole } from '@athenagrid/shared';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -14,8 +14,8 @@ export class MarketplaceController {
   constructor(private readonly svc: MarketplaceService) {}
 
   @Get('industries')
-  industries(@CurrentUser() user: JwtPayload) {
-    return this.svc.nearbyIndustries(user.sub);
+  industries(@CurrentUser() user: JwtPayload, @Query('zip') zip?: string) {
+    return this.svc.nearbyIndustries(user.sub, zip);
   }
 
   @Post('orders')

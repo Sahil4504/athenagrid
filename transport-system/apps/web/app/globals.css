@@ -175,8 +175,16 @@ input:focus, select:focus { outline: none; border-color: var(--green-500); box-s
   padding: 12px 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.18); max-width: 520px;
 }
 .mkt-search input { border: none; outline: none; flex: 1; font-size: 15px; color: var(--ink); background: transparent; }
-.mkt-trust { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.92); }
+.mkt-trust { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 14px; font-size: 13px; color: rgba(255,255,255,0.92); align-items: center; }
 .mkt-trust strong { color: #fff; }
+.mkt-reset { background: none; border: none; color: #fff; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 0; font-weight: 600; }
+.mkt-reset:hover { color: var(--green-100); }
+
+/* Deliver-to-ZIP bar */
+.mkt-deliver { display: flex; align-items: center; gap: 8px; margin-top: 12px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28); border-radius: 999px; padding: 6px 8px 6px 14px; max-width: 460px; }
+.mkt-deliver-pin { font-size: 15px; }
+.mkt-zip { flex: 1; border: none; outline: none; background: transparent; color: #fff; font-size: 14px; min-width: 120px; }
+.mkt-zip::placeholder { color: rgba(255,255,255,0.72); }
 
 /* Category + sort bar */
 .mkt-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 22px 0 6px; flex-wrap: wrap; }

@@ -177,9 +177,19 @@ async function main() {
   const existing = await prisma.industry.findMany({ select: { state: true } });
   const distinctStates = new Set(existing.map((i) => i.state)).size;
   const stale = existing.length > 0 && (existing.length !== US_CITIES.length || distinctStates < 50);
-  if (stale && (await prisma.order.count()) === 0) {
+  // MARKETPLACE_FORCE_RESEED=true forces a clean rebuild even when test orders exist
+  // (used once to upgrade a live DB that still has the old CA-only vendors). Set it,
+  // redeploy, confirm the new vendors, then remove the flag.
+  const forceReseed = process.env.MARKETPLACE_FORCE_RESEED === 'true';
+  const ordersCount = await prisma.order.count();
+  if (existing.length > 0 && (forceReseed || (stale && ordersCount === 0))) {
+    if (ordersCount > 0) {
+      // Clear marketplace orders so the FK-restricted industry delete can proceed.
+      await prisma.orderItem.deleteMany({});
+      await prisma.order.deleteMany({});
+    }
     await prisma.industry.deleteMany({}); // cascades to CatalogItem
-    console.log('Refreshed stale vendor set → rebuilding 3 industries per state.');
+    console.log(`Vendor set rebuilt (${forceReseed ? 'forced reseed' : 'stale set'}) → 3 industries per state.`);
   }
   if ((await prisma.industry.count()) === 0) {
     let ci = 0;

@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsNumber, IsString, Min, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
 class OrderLineDto {
   @IsString() catalogItemId!: string;
@@ -14,4 +14,9 @@ export class CreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => OrderLineDto)
   items!: OrderLineDto[];
+
+  // Optional alternate delivery location (e.g. a warehouse at a different ZIP than
+  // the farmer's registered address). When present, the transport job drops off here.
+  @IsOptional() @IsString() deliverPostalCode?: string;
+  @IsOptional() @IsString() deliverAddress?: string;
 }

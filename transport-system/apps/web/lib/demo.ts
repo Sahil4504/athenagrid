@@ -70,8 +70,12 @@ export const demoApi = {
   listTrips: () => wait([{ id: 'demo-trip-1', status: 'ASSIGNED', job: job }]),
   tripStatus: (_id: string, status: string) => wait({ ok: true, status }),
   tripLocation: (_id: string, _lat: number, _lng: number) => wait({ ok: true }),
-  marketplaceIndustries: () => wait([] as any[]),
+  marketplaceIndustries: (_zip?: string) => wait([] as any[]),
   marketplaceOrders: () => wait([] as any[]),
-  createOrder: (_dto: { industryId: string; items: { catalogItemId: string; qty: number }[] }) =>
-    wait({ id: 'demo-order-1' }),
+  createOrder: (_dto: {
+    industryId: string;
+    items: { catalogItemId: string; qty: number }[];
+    deliverPostalCode?: string;
+    deliverAddress?: string;
+  }) => wait({ id: 'demo-order-1' }),
 };

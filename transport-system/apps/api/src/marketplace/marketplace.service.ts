@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { DEFAULT_MARKETPLACE_FEE_RATE, JobStatus, ShipperType } from '@athenagrid/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { GeoService } from '../geo/geo.service';
+import { GeocodeService } from '../geo/geocode.service';
 import { PricingService } from '../pricing/pricing.service';
 import { CreateOrderDto } from './dto';
 
@@ -13,6 +14,7 @@ export class MarketplaceService {
   constructor(
     private prisma: PrismaService,
     private geo: GeoService,
+    private geocode: GeocodeService,
     private pricing: PricingService,
     private config: ConfigService,
   ) {}
@@ -30,27 +32,49 @@ export class MarketplaceService {
     return user;
   }
 
-  /** Nearby industries (nearest first) with their catalog. */
-  async nearbyIndustries(userId: string) {
+  /**
+   * Nearby industries (nearest first) with their catalog. Ranks by an explicit
+   * delivery ZIP when provided (e.g. a warehouse elsewhere), otherwise by the
+   * farmer's registered address.
+   */
+  async nearbyIndustries(userId: string, zip?: string) {
     const farmer = await this.requireFarmer(userId);
-    const industries = await this.prisma.industry.findMany({ include: { catalog: true } });
 
-    const hasLoc = farmer.lat != null && farmer.lng != null;
+    // Origin point: typed ZIP wins; else the farmer's registered coordinates.
+    let origin: { lat: number; lng: number } | null =
+      farmer.lat != null && farmer.lng != null ? { lat: farmer.lat, lng: farmer.lng } : null;
+    if (zip && zip.trim()) {
+      origin = await this.geocode.geocode(zip.trim());
+    }
+
+    const industries = await this.prisma.industry.findMany({ include: { catalog: true } });
     return industries
       .map((ind) => ({
         ...ind,
-        distanceKm: hasLoc ? round2(this.geo.distanceKm(farmer.lat!, farmer.lng!, ind.lat, ind.lng)) : null,
+        distanceKm: origin ? round2(this.geo.distanceKm(origin.lat, origin.lng, ind.lat, ind.lng)) : null,
       }))
       .sort((a, b) => (a.distanceKm ?? 1e9) - (b.distanceKm ?? 1e9))
       .slice(0, 10); // nearest vendors only
   }
 
-  /** Create an order and auto-post a transport job (industry → farmer). */
+  /** Create an order and auto-post a transport job (industry → delivery point). */
   async createOrder(userId: string, dto: CreateOrderDto) {
     const farmer = await this.requireFarmer(userId);
-    if (farmer.lat == null || farmer.lng == null) {
-      throw new BadRequestException('Add your delivery address before ordering');
+
+    // Delivery point: an alternate ZIP/address (e.g. a warehouse) if given, else
+    // the farmer's registered address.
+    let dropoff: { lat: number; lng: number } | null =
+      farmer.lat != null && farmer.lng != null ? { lat: farmer.lat, lng: farmer.lng } : null;
+    let dropoffAddress = farmer.address ?? 'Farmer address';
+    if (dto.deliverPostalCode && dto.deliverPostalCode.trim()) {
+      dropoff = await this.geocode.geocode(dto.deliverPostalCode.trim(), dto.deliverAddress);
+      dropoffAddress =
+        dto.deliverAddress?.trim() || `Delivery to ${dto.deliverPostalCode.trim()}`;
     }
+    if (!dropoff) {
+      throw new BadRequestException('Add a delivery address or ZIP before ordering');
+    }
+
     const industry = await this.prisma.industry.findUnique({ where: { id: dto.industryId } });
     if (!industry) throw new NotFoundException('Industry not found');
 
@@ -81,8 +105,8 @@ export class MarketplaceService {
     const band = this.pricing.computeBand({
       pickupLat: industry.lat,
       pickupLng: industry.lng,
-      dropoffLat: farmer.lat,
-      dropoffLng: farmer.lng,
+      dropoffLat: dropoff.lat,
+      dropoffLng: dropoff.lng,
       weightKg,
       coldChainRequired: false,
       perishabilityIndex: 0,
@@ -98,9 +122,9 @@ export class MarketplaceService {
           pickupLat: industry.lat,
           pickupLng: industry.lng,
           pickupAddress: `${industry.name}, ${industry.city}`,
-          dropoffLat: farmer.lat!,
-          dropoffLng: farmer.lng!,
-          dropoffAddress: farmer.address ?? 'Farmer address',
+          dropoffLat: dropoff.lat,
+          dropoffLng: dropoff.lng,
+          dropoffAddress,
           cropType: `Farm supplies (${summary})`,
           weightKg,
           volumeM3: Math.max(1, round2(weightKg / 200)),
