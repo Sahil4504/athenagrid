@@ -18,6 +18,7 @@ services:
       npm run build --workspace @athenagrid/api
     startCommand: >-
       npx prisma db push --schema apps/api/prisma/schema.prisma --skip-generate &&
+      (npm --workspace @athenagrid/api run seed || echo "seed skipped") &&
       node apps/api/dist/main.js
     healthCheckPath: /api/v1/health
     envVars:
