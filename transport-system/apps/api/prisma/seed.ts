@@ -6,11 +6,12 @@ const prisma = new PrismaClient();
 async function main() {
   const pw = hashPassword('password123');
 
-  // Shipper (a farmer)
+  // Shipper (a farmer) — located in Fresno, CA for marketplace proximity
+  const farmerLoc = { address: '123 Orchard Rd, Fresno, CA', postalCode: '93721', lat: 36.7378, lng: -119.7871 };
   const shipper = await prisma.user.upsert({
     where: { email: 'farmer@athenagrid.dev' },
-    update: { shipperType: 'FARMER' },
-    create: { role: 'SHIPPER', email: 'farmer@athenagrid.dev', passwordHash: pw, fullName: 'Fresno Farm Co', shipperType: 'FARMER' },
+    update: { shipperType: 'FARMER', ...farmerLoc },
+    create: { role: 'SHIPPER', email: 'farmer@athenagrid.dev', passwordHash: pw, fullName: 'Fresno Farm Co', shipperType: 'FARMER', ...farmerLoc },
   });
 
   // Shipper (an industry — sells essentials / buys crops)
@@ -166,6 +167,47 @@ async function main() {
     where: { role: 'SHIPPER', shipperType: null },
     data: { shipperType: 'FARMER' },
   });
+
+  // Dummy industries (vendors of farming essentials) with catalogs — seed once.
+  if ((await prisma.industry.count()) === 0) {
+    // NOTE: no emojis stored in the DB (local embedded Postgres uses WIN1252 which
+    // can't hold them). The UI renders an icon by category instead.
+    const industries = [
+      {
+        name: 'Fresno AgriSupply', address: '900 Ag Way', city: 'Fresno', state: 'CA', postalCode: '93721', lat: 36.7378, lng: -119.7871,
+        items: [
+          { name: 'Tomato Seeds', category: 'SEEDS', unit: 'bag', pricePerUnit: 45, weightKgPerUnit: 1 },
+          { name: 'Organic Pesticide', category: 'PESTICIDES', unit: 'litre', pricePerUnit: 30, weightKgPerUnit: 1.2 },
+          { name: 'NPK Fertilizer', category: 'FERTILIZER', unit: 'bag', pricePerUnit: 60, weightKgPerUnit: 50 },
+          { name: 'Hand Trowel', category: 'TOOLS', unit: 'piece', pricePerUnit: 12, weightKgPerUnit: 0.5 },
+        ],
+      },
+      {
+        name: 'Salinas Farm Depot', address: '210 Valley Blvd', city: 'Salinas', state: 'CA', postalCode: '93901', lat: 36.6777, lng: -121.6555,
+        items: [
+          { name: 'Tomato Seeds', category: 'SEEDS', unit: 'bag', pricePerUnit: 42, weightKgPerUnit: 1 },
+          { name: 'Corn Seeds', category: 'SEEDS', unit: 'bag', pricePerUnit: 38, weightKgPerUnit: 1 },
+          { name: 'Fungicide', category: 'PESTICIDES', unit: 'litre', pricePerUnit: 34, weightKgPerUnit: 1.2 },
+          { name: 'Pruning Shears', category: 'TOOLS', unit: 'piece', pricePerUnit: 18, weightKgPerUnit: 0.4 },
+        ],
+      },
+      {
+        name: 'Bakersfield Growers Mart', address: '55 Harvest St', city: 'Bakersfield', state: 'CA', postalCode: '93301', lat: 35.3733, lng: -119.0187,
+        items: [
+          { name: 'NPK Fertilizer', category: 'FERTILIZER', unit: 'bag', pricePerUnit: 55, weightKgPerUnit: 50 },
+          { name: 'Compost', category: 'FERTILIZER', unit: 'bag', pricePerUnit: 25, weightKgPerUnit: 40 },
+          { name: 'Organic Pesticide', category: 'PESTICIDES', unit: 'litre', pricePerUnit: 28, weightKgPerUnit: 1.2 },
+          { name: 'Hand Trowel', category: 'TOOLS', unit: 'piece', pricePerUnit: 10, weightKgPerUnit: 0.5 },
+        ],
+      },
+    ];
+    for (const ind of industries) {
+      const { items, ...data } = ind;
+      await prisma.industry.create({
+        data: { ...data, catalog: { create: items as any } },
+      });
+    }
+  }
 
   console.log(
     'Seed complete (password123): farmer@ + industry@ (shippers), carrier@ + carrier2@ ' +

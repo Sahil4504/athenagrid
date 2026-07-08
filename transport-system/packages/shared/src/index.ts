@@ -30,6 +30,30 @@ export enum ShipperType {
   INDUSTRY = 'INDUSTRY',
 }
 
+export enum ProductCategory {
+  SEEDS = 'SEEDS',
+  PESTICIDES = 'PESTICIDES',
+  FERTILIZER = 'FERTILIZER',
+  TOOLS = 'TOOLS',
+}
+
+export enum OrderStatus {
+  PLACED = 'PLACED', // order created, transport job posted, awaiting award
+  IN_TRANSIT = 'IN_TRANSIT',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
+}
+
+/** Marketplace platform fee on the goods total (added to the farmer's bill). */
+export const DEFAULT_MARKETPLACE_FEE_RATE = 0.05;
+
+export interface GeoLocation {
+  address?: string;
+  postalCode?: string;
+  lat: number;
+  lng: number;
+}
+
 export enum VerificationDocType {
   DRIVING_LICENCE = 'DRIVING_LICENCE',
   VEHICLE_REGISTRATION = 'VEHICLE_REGISTRATION',

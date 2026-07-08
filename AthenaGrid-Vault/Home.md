@@ -13,6 +13,7 @@ Map of content for the **AthenaGrid** project vault. Start here.
 ## Core notes
 - [[Project Overview]] — vision, the three pillars, team split
 - [[Transport System]] — the module this vault mostly covers (Sahil owns it)
+- [[Industry Marketplace]] — farmers buy essentials from industries (Sahil's build)
 - [[Architecture]] — how it's built, request/realtime flow, AWS target
 - [[Data Model]] — entities, relations, state machines
 - [[Bidding Engine]] — the auction: verification gate, live bids, award

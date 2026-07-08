@@ -10,6 +10,7 @@ import {
   VerificationStatus,
 } from '@athenagrid/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { GeocodeService } from '../geo/geocode.service';
 import { hashPassword, verifyPassword } from '../common/password';
 import { LoginDto, RegisterDto } from './dto';
 
@@ -19,6 +20,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private geocode: GeocodeService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthTokens> {
@@ -28,6 +30,13 @@ export class AuthService {
     const passwordHash = hashPassword(dto.password);
     const carrierType = dto.carrierType ?? CarrierType.COMPANY;
     const isIndividual = dto.role === UserRole.CARRIER && carrierType === CarrierType.INDIVIDUAL;
+    const shipperType = dto.role === UserRole.SHIPPER ? (dto.shipperType ?? ShipperType.FARMER) : undefined;
+
+    // Geocode a farmer's address so the marketplace can rank industries by proximity.
+    let loc: { lat: number; lng: number } | null = null;
+    if (shipperType === ShipperType.FARMER) {
+      loc = await this.geocode.geocode(dto.postalCode, dto.address);
+    }
     // For open test deployments, auto-verify carriers so testers can bid immediately.
     const initialStatus =
       this.config.get('AUTO_VERIFY_CARRIERS') === 'true'
@@ -41,8 +50,11 @@ export class AuthService {
         passwordHash,
         fullName: dto.fullName,
         phone: dto.phone,
-        shipperType:
-          dto.role === UserRole.SHIPPER ? (dto.shipperType ?? ShipperType.FARMER) : undefined,
+        shipperType,
+        address: dto.address,
+        postalCode: dto.postalCode,
+        lat: loc?.lat,
+        lng: loc?.lng,
         // Create the role-specific profile in the same write.
         carrierProfile:
           dto.role === UserRole.CARRIER

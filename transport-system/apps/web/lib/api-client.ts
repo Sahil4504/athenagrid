@@ -57,6 +57,11 @@ export const api = DEMO
 
       listBids: (jobId: string) => request<any[]>(`/jobs/${jobId}/bids`),
 
+      marketplaceIndustries: () => request<any[]>('/marketplace/industries'),
+      marketplaceOrders: () => request<any[]>('/marketplace/orders'),
+      createOrder: (dto: { industryId: string; items: { catalogItemId: string; qty: number }[] }) =>
+        request('/marketplace/orders', { method: 'POST', body: JSON.stringify(dto) }),
+
       placeBid: (jobId: string, dto: PlaceBidDto) =>
         request(`/jobs/${jobId}/bids`, { method: 'POST', body: JSON.stringify(dto) }),
 

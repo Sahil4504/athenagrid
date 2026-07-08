@@ -38,6 +38,20 @@ enum ShipperType {
   INDUSTRY
 }
 
+enum ProductCategory {
+  SEEDS
+  PESTICIDES
+  FERTILIZER
+  TOOLS
+}
+
+enum OrderStatus {
+  PLACED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
 enum VerificationDocType {
   DRIVING_LICENCE
   VEHICLE_REGISTRATION
@@ -88,14 +102,85 @@ model User {
   passwordHash String
   fullName     String
   shipperType  ShipperType? // FARMER | INDUSTRY, set for SHIPPER users
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+
+  // Location (mainly for FARMER — drives marketplace proximity recommendations)
+  address    String?
+  postalCode String?
+  lat        Float?
+  lng        Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   carrierProfile CarrierProfile?
   driverProfile  DriverProfile?
   jobs           Job[]           @relation("ShipperJobs")
+  orders         Order[]
 
   @@index([role])
+}
+
+// A dummy onboarded industry (vendor of farming essentials).
+model Industry {
+  id         String   @id @default(cuid())
+  name       String
+  address    String
+  city       String
+  state      String
+  postalCode String
+  lat        Float
+  lng        Float
+  createdAt  DateTime @default(now())
+
+  catalog CatalogItem[]
+  orders  Order[]
+}
+
+model CatalogItem {
+  id              String          @id @default(cuid())
+  industryId      String
+  industry        Industry        @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  name            String
+  category        ProductCategory
+  unit            String // e.g. "kg", "bag", "litre", "piece"
+  pricePerUnit    Float
+  weightKgPerUnit Float           @default(1)
+  icon            String? // emoji for the UI
+
+  orderItems OrderItem[]
+
+  @@index([industryId, category])
+}
+
+// A farmer's purchase from one industry. Auto-posts a transport job on checkout.
+model Order {
+  id             String      @id @default(cuid())
+  farmerId       String
+  farmer         User        @relation(fields: [farmerId], references: [id])
+  industryId     String
+  industry       Industry    @relation(fields: [industryId], references: [id])
+  status         OrderStatus @default(PLACED)
+  itemsTotal     Float
+  marketplaceFee Float
+  jobId          String?     @unique // linked transport job
+  job            Job?        @relation(fields: [jobId], references: [id])
+  createdAt      DateTime    @default(now())
+
+  items OrderItem[]
+
+  @@index([farmerId])
+}
+
+model OrderItem {
+  id            String      @id @default(cuid())
+  orderId       String
+  order         Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  catalogItemId String
+  catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id])
+  name          String
+  qty           Float
+  unitPrice     Float
+  lineTotal     Float
 }
 
 model CarrierProfile {
@@ -202,6 +287,7 @@ model Job {
   bids       Bid[]
   trip       Trip?
   settlement Settlement?
+  order      Order? // set when the job was auto-created from a marketplace order
 
   @@index([status])
   @@index([biddingClosesAt])

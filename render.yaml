@@ -35,6 +35,8 @@ services:
         value: "0.08"
       - key: SHIPPER_FEE_RATE
         value: "0.04"
+      - key: MARKETPLACE_FEE_RATE
+        value: "0.05"
       - key: AUTO_VERIFY_CARRIERS
         value: "true"
       - key: CORS_ORIGIN

@@ -9,6 +9,7 @@ import { BidsModule } from './bids/bids.module';
 import { TrackingModule } from './tracking/tracking.module';
 import { GeoModule } from './geo/geo.module';
 import { PricingModule } from './pricing/pricing.module';
+import { MarketplaceModule } from './marketplace/marketplace.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { HealthController } from './health.controller';
     JobsModule,
     BidsModule,
     TrackingModule,
+    MarketplaceModule,
   ],
   controllers: [HealthController],
 })

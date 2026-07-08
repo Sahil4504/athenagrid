@@ -18,6 +18,7 @@ export default function SignupPage() {
   const [kind, setKind] = useState<Kind>('FARMER');
   const [form, setForm] = useState<any>({
     fullName: '', email: '', password: '', companyName: '',
+    address: '', postalCode: '',
     licenceNo: '', vehiclePlate: '', vehicleCapacityKg: 3000, vehicleRefrigerated: false,
   });
   const [err, setErr] = useState('');
@@ -31,6 +32,10 @@ export default function SignupPage() {
       if (kind === 'FARMER' || kind === 'INDUSTRY') {
         dto.role = 'SHIPPER';
         dto.shipperType = kind;
+        if (kind === 'FARMER') {
+          dto.address = form.address;
+          dto.postalCode = form.postalCode;
+        }
       } else {
         dto.role = 'CARRIER';
         dto.carrierType = kind === 'COMPANY' ? 'COMPANY' : 'INDIVIDUAL';
@@ -79,6 +84,15 @@ export default function SignupPage() {
           <div className="field" style={{ flex: 1 }}><label>Password (min 8)</label>
             <input type="password" value={form.password} onChange={(e) => set('password', e.target.value)} /></div>
         </div>
+
+        {kind === 'FARMER' && (
+          <div className="row">
+            <div className="field" style={{ flex: 2 }}><label>Farm address</label>
+              <input value={form.address} placeholder="123 Orchard Rd, Fresno, CA" onChange={(e) => set('address', e.target.value)} /></div>
+            <div className="field" style={{ flex: 1 }}><label>ZIP code</label>
+              <input value={form.postalCode} placeholder="93721" onChange={(e) => set('postalCode', e.target.value)} /></div>
+          </div>
+        )}
 
         {kind === 'COMPANY' && (
           <div className="field"><label>Company name</label>

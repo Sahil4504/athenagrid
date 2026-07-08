@@ -17,6 +17,9 @@ export function Nav() {
       <div className="nav-links">
         {ready && user ? (
           <>
+            {user.role === 'SHIPPER' && user.shipperType === 'FARMER' && (
+              <Link href="/marketplace">🛒 Marketplace</Link>
+            )}
             <Link href={dashboardFor(user)}>My dashboard</Link>
             <a
               style={{ cursor: 'pointer' }}

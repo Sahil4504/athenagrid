@@ -32,6 +32,15 @@ export class RegisterDto {
   @IsEnum(ShipperType)
   shipperType?: ShipperType;
 
+  // FARMER location (for marketplace proximity)
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  postalCode?: string;
+
   // CARRIER: COMPANY (a fleet operator) or INDIVIDUAL (owner-operator driver).
   @IsOptional()
   @IsEnum(CarrierType)
