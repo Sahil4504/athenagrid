@@ -25,6 +25,19 @@ Prisma schema: `transport-system/apps/api/prisma/schema.prisma`. Postgres.
   farmerTotal, driverPayout, platformRevenue. See [[Pricing and Commission]].
 - **AuditLog** — append-only (verification decisions, awards).
 
+## Roles + marketplace additions (2026-07-07)
+- **User** gained: `shipperType` (`FARMER | INDUSTRY`) and location `address / postalCode /
+  lat / lng` (farmers, for [[Industry Marketplace]] proximity). Also `orders`.
+- **CarrierProfile** gained `type` (`COMPANY | INDIVIDUAL`) — see [[Bidding Engine]].
+- **Industry** — dummy vendor: name, city, state, lat/lng, → `catalog`.
+- **CatalogItem** — industryId, name, **brand**, `category` (`SEEDS | PESTICIDES | FERTILIZER
+  | TOOLS`), unit, pricePerUnit, weightKgPerUnit, **imageUrl**.
+- **Order** — farmerId, industryId, `status`, itemsTotal, marketplaceFee, `jobId` (the
+  auto-posted transport [[Data Model#Entities|Job]]). → `items` (**OrderItem**: name, qty,
+  unitPrice, lineTotal).
+- **Job** gained pricing fields (referencePrice/floorPrice/ceilingPrice — [[Pricing and Commission]])
+  and a back-relation `order`.
+
 ## State machines
 ```
 Job:  DRAFT → OPEN → AWARDED → IN_TRANSIT → DELIVERED → CLOSED

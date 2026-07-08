@@ -18,9 +18,13 @@ services:
       npm run build --workspace @athenagrid/shared &&
       npm --workspace @athenagrid/api run prisma:generate &&
       npm run build --workspace @athenagrid/api
-    # db push runs at startup (DATABASE_URL guaranteed present at runtime).
+    # db push runs at startup (DATABASE_URL guaranteed present at runtime), then
+    # the idempotent seed populates/upgrades the marketplace (150 vendors across
+    # all 50 states + real catalog). Seed is guarded, so it's a near no-op once
+    # the data exists; `|| true` keeps a seed hiccup from blocking the API boot.
     startCommand: >-
       npx prisma db push --schema apps/api/prisma/schema.prisma --skip-generate &&
+      (npm run seed --workspace @athenagrid/api || echo 'seed skipped') &&
       node apps/api/dist/main.js
     healthCheckPath: /api/v1/health
     envVars:

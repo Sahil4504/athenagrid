@@ -42,7 +42,7 @@ export class MarketplaceService {
         distanceKm: hasLoc ? round2(this.geo.distanceKm(farmer.lat!, farmer.lng!, ind.lat, ind.lng)) : null,
       }))
       .sort((a, b) => (a.distanceKm ?? 1e9) - (b.distanceKm ?? 1e9))
-      .slice(0, 6); // nearest vendors only
+      .slice(0, 10); // nearest vendors only
   }
 
   /** Create an order and auto-post a transport job (industry → farmer). */

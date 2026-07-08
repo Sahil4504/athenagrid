@@ -147,7 +147,11 @@ model CatalogItem {
   pricePerUnit    Float
   weightKgPerUnit Float           @default(1)
   imageUrl        String?
+  imageKey        String? // key into the in-app product illustration set (see productArt)
   icon            String? // legacy; UI now renders a category icon client-side
+  description     String? // short marketing blurb shown on the product card
+  rating          Float?  @default(4.5) // 0-5 star rating (demo social proof)
+  reviews         Int?    @default(0) // number of ratings
 
   orderItems OrderItem[]
 

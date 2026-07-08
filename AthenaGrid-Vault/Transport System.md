@@ -32,4 +32,9 @@ The transport marketplace — **Sahil's module** and the focus of this vault. Co
 Payments/escrow, ratings, ML route-optimizer integration, Cognito auth, full admin UI,
 real S3 verification uploads (stubbed locally). See [[Roadmap]].
 
-Related: [[Architecture]] · [[Data Model]]
+## Access (reworked 2026-07-07)
+Unified `/login` routes by role; dashboards are role-guarded. Account types: Farmer, Industry,
+Transport Company, Individual Driver. Full detail in [[Auth and Roles]]. Farmers also get the
+[[Industry Marketplace]]; the manual "post a job" form was removed (jobs now come from orders).
+
+Related: [[Architecture]] · [[Data Model]] · [[Auth and Roles]] · [[Industry Marketplace]]

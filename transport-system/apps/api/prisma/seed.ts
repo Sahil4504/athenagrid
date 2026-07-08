@@ -169,11 +169,17 @@ async function main() {
     data: { shipperType: 'FARMER' },
   });
 
-  // Dummy industries across US states with a realistic catalog.
-  // Refresh outdated dummy vendors (e.g. the old 3) when it's safe — no orders reference them.
-  const existingIndustries = await prisma.industry.count();
-  if (existingIndustries > 0 && existingIndustries < US_CITIES.length && (await prisma.order.count()) === 0) {
+  // Dummy industries across US states with a realistic catalog: 3 vendors in
+  // every state. Rebuild the vendor set when it's stale (old CA-only data or a
+  // different count) AND no orders reference it, so existing deployments upgrade
+  // themselves. If orders exist, we leave data in place (delete `.devdata`
+  // locally to force a clean refresh).
+  const existing = await prisma.industry.findMany({ select: { state: true } });
+  const distinctStates = new Set(existing.map((i) => i.state)).size;
+  const stale = existing.length > 0 && (existing.length !== US_CITIES.length || distinctStates < 50);
+  if (stale && (await prisma.order.count()) === 0) {
     await prisma.industry.deleteMany({}); // cascades to CatalogItem
+    console.log('Refreshed stale vendor set → rebuilding 3 industries per state.');
   }
   if ((await prisma.industry.count()) === 0) {
     let ci = 0;
@@ -191,15 +197,17 @@ async function main() {
           lng: city.lng,
         },
       });
-      // Each vendor stocks a rotating subset of ~12 products with ~±12% price variation.
+      // Each vendor stocks a rotating subset of ~12 products with light price variation.
       const start = (ci * 3) % PRODUCTS.length;
       const seen = new Set<string>();
-      const items = [];
+      const items: any[] = [];
       for (let k = 0; k < 12; k++) {
         const p = PRODUCTS[(start + k) % PRODUCTS.length];
         if (seen.has(p.name)) continue;
         seen.add(p.name);
         const variance = 1 + ((((ci + k) % 7) - 3) * 0.04);
+        // Vary review counts a little per vendor so cards don't look identical.
+        const reviews = Math.max(3, Math.round(p.reviews * (0.7 + ((ci + k) % 5) * 0.12)));
         items.push({
           industryId: industry.id,
           name: p.name,
@@ -208,7 +216,10 @@ async function main() {
           unit: p.unit,
           pricePerUnit: Math.round(p.price * variance * 100) / 100,
           weightKgPerUnit: p.weight,
-          imageUrl: p.img,
+          imageKey: p.imageKey,
+          description: p.description,
+          rating: p.rating,
+          reviews,
         });
       }
       await prisma.catalogItem.createMany({ data: items });

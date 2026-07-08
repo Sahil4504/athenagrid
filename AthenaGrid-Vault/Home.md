@@ -1,6 +1,6 @@
 ---
 tags: [moc, athenagrid]
-updated: 2026-07-07
+updated: 2026-07-07 (marketplace v2 + unified auth)
 ---
 
 # 🌾 AthenaGrid — Home
@@ -17,6 +17,7 @@ Map of content for the **AthenaGrid** project vault. Start here.
 - [[Architecture]] — how it's built, request/realtime flow, AWS target
 - [[Data Model]] — entities, relations, state machines
 - [[Bidding Engine]] — the auction: verification gate, live bids, award
+- [[Auth and Roles]] — account types, unified login, role guards
 - [[Pricing and Commission]] — fair-price band, scoring, money split
 - [[Tech Stack]] — languages, frameworks, services
 

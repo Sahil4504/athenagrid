@@ -21,9 +21,13 @@ Live test deployment (free tiers). Full guide in repo: `transport-system/DEPLOY.
 
 ## Backend — Render (Blueprint `render.yaml` at repo root)
 - Creates the API web service + a free managed **Postgres**.
-- Build compiles; **start** runs `prisma db push` then `node dist/main.js`.
+- Build compiles; **start** runs `prisma db push` → **seed** (auto-populates the DB every
+  deploy; free tier has no Shell, so seeding lives in the start command) → `node dist/main.js`.
+  Seed is wrapped `|| echo "seed skipped"` so a seed hiccup never takes the API down.
 - Key env: `DATABASE_URL` (from DB), JWT secrets (auto), commission rates,
-  `AUTO_VERIFY_CARRIERS=true`, `CORS_ORIGIN=*`.
+  `MARKETPLACE_FEE_RATE=0.05`, `AUTO_VERIFY_CARRIERS=true`, `CORS_ORIGIN=*`.
+- **Note:** `render.yaml` lives at the **repo root** (`AthenaGrid/`), not in `transport-system/`
+  — Render Blueprints only read it from the root; `rootDir: transport-system` builds the app.
 
 ## Free-tier caveats
 - API **sleeps after ~15 min idle** → first request wakes it in ~50s.

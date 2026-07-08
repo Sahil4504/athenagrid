@@ -1,20 +1,22 @@
-// Dummy marketplace data: US cities (≈3 per state) + a realistic farm-input catalog
-// modelled on FBN's categories. Coordinates are approximate (used only for distance
-// ranking). Product images come from a keyword image service, with a UI fallback.
+// Marketplace seed data: exactly 3 vendor cities in every US state (150 total)
+// + a realistic farm-input catalog modelled on real ag brands and FBN-style
+// categories. Coordinates are approximate (used only for proximity ranking).
+// Product artwork is rendered in-app from `imageKey` (see web productArt), so
+// there are no external image dependencies to break at launch.
 
 export type City = { c: string; s: string; lat: number; lng: number };
 
 export const US_CITIES: City[] = [
   { c: 'Birmingham', s: 'AL', lat: 33.5186, lng: -86.8104 }, { c: 'Montgomery', s: 'AL', lat: 32.3668, lng: -86.3 }, { c: 'Huntsville', s: 'AL', lat: 34.7304, lng: -86.5861 },
-  { c: 'Anchorage', s: 'AK', lat: 61.2181, lng: -149.9003 }, { c: 'Fairbanks', s: 'AK', lat: 64.8378, lng: -147.7164 }, { c: 'Juneau', s: 'AK', lat: 58.3019, lng: -134.4197 },
+  { c: 'Anchorage', s: 'AK', lat: 61.2181, lng: -149.9003 }, { c: 'Fairbanks', s: 'AK', lat: 64.8378, lng: -147.7164 }, { c: 'Palmer', s: 'AK', lat: 61.5997, lng: -149.1128 },
   { c: 'Phoenix', s: 'AZ', lat: 33.4484, lng: -112.074 }, { c: 'Tucson', s: 'AZ', lat: 32.2226, lng: -110.9747 }, { c: 'Yuma', s: 'AZ', lat: 32.6927, lng: -114.6277 },
-  { c: 'Little Rock', s: 'AR', lat: 34.7465, lng: -92.2896 }, { c: 'Fayetteville', s: 'AR', lat: 36.0626, lng: -94.1574 }, { c: 'Jonesboro', s: 'AR', lat: 35.8423, lng: -90.7043 },
-  { c: 'Fresno', s: 'CA', lat: 36.7378, lng: -119.7871 }, { c: 'Salinas', s: 'CA', lat: 36.6777, lng: -121.6555 }, { c: 'Bakersfield', s: 'CA', lat: 35.3733, lng: -119.0187 }, { c: 'Sacramento', s: 'CA', lat: 38.5816, lng: -121.4944 },
-  { c: 'Denver', s: 'CO', lat: 39.7392, lng: -104.9903 }, { c: 'Greeley', s: 'CO', lat: 40.4233, lng: -104.7091 }, { c: 'Pueblo', s: 'CO', lat: 38.2544, lng: -104.6091 },
+  { c: 'Little Rock', s: 'AR', lat: 34.7465, lng: -92.2896 }, { c: 'Jonesboro', s: 'AR', lat: 35.8423, lng: -90.7043 }, { c: 'Stuttgart', s: 'AR', lat: 34.5001, lng: -91.5526 },
+  { c: 'Fresno', s: 'CA', lat: 36.7378, lng: -119.7871 }, { c: 'Salinas', s: 'CA', lat: 36.6777, lng: -121.6555 }, { c: 'Bakersfield', s: 'CA', lat: 35.3733, lng: -119.0187 },
+  { c: 'Greeley', s: 'CO', lat: 40.4233, lng: -104.7091 }, { c: 'Fort Collins', s: 'CO', lat: 40.5853, lng: -105.0844 }, { c: 'Pueblo', s: 'CO', lat: 38.2544, lng: -104.6091 },
   { c: 'Hartford', s: 'CT', lat: 41.7658, lng: -72.6734 }, { c: 'New Haven', s: 'CT', lat: 41.3083, lng: -72.9279 }, { c: 'Storrs', s: 'CT', lat: 41.8084, lng: -72.2495 },
-  { c: 'Dover', s: 'DE', lat: 39.1582, lng: -75.5244 }, { c: 'Wilmington', s: 'DE', lat: 39.7391, lng: -75.5398 }, { c: 'Georgetown', s: 'DE', lat: 38.69, lng: -75.3855 },
-  { c: 'Orlando', s: 'FL', lat: 28.5383, lng: -81.3792 }, { c: 'Gainesville', s: 'FL', lat: 29.6516, lng: -82.3248 }, { c: 'Immokalee', s: 'FL', lat: 26.4187, lng: -81.4176 },
-  { c: 'Atlanta', s: 'GA', lat: 33.749, lng: -84.388 }, { c: 'Tifton', s: 'GA', lat: 31.4505, lng: -83.5085 }, { c: 'Macon', s: 'GA', lat: 32.8407, lng: -83.6324 },
+  { c: 'Dover', s: 'DE', lat: 39.1582, lng: -75.5244 }, { c: 'Georgetown', s: 'DE', lat: 38.69, lng: -75.3855 }, { c: 'Middletown', s: 'DE', lat: 39.4496, lng: -75.7163 },
+  { c: 'Gainesville', s: 'FL', lat: 29.6516, lng: -82.3248 }, { c: 'Immokalee', s: 'FL', lat: 26.4187, lng: -81.4176 }, { c: 'Belle Glade', s: 'FL', lat: 26.6845, lng: -80.6676 },
+  { c: 'Tifton', s: 'GA', lat: 31.4505, lng: -83.5085 }, { c: 'Macon', s: 'GA', lat: 32.8407, lng: -83.6324 }, { c: 'Moultrie', s: 'GA', lat: 31.1799, lng: -83.789 },
   { c: 'Honolulu', s: 'HI', lat: 21.3069, lng: -157.8583 }, { c: 'Hilo', s: 'HI', lat: 19.7071, lng: -155.0885 }, { c: 'Kahului', s: 'HI', lat: 20.8893, lng: -156.4729 },
   { c: 'Boise', s: 'ID', lat: 43.615, lng: -116.2023 }, { c: 'Idaho Falls', s: 'ID', lat: 43.4917, lng: -112.033 }, { c: 'Twin Falls', s: 'ID', lat: 42.5558, lng: -114.4701 },
   { c: 'Springfield', s: 'IL', lat: 39.7817, lng: -89.6501 }, { c: 'Champaign', s: 'IL', lat: 40.1164, lng: -88.2434 }, { c: 'Bloomington', s: 'IL', lat: 40.4842, lng: -88.9937 },
@@ -32,22 +34,22 @@ export const US_CITIES: City[] = [
   { c: 'Columbia', s: 'MO', lat: 38.9517, lng: -92.3341 }, { c: 'Springfield', s: 'MO', lat: 37.2089, lng: -93.2923 }, { c: 'St. Joseph', s: 'MO', lat: 39.7675, lng: -94.8467 },
   { c: 'Billings', s: 'MT', lat: 45.7833, lng: -108.5007 }, { c: 'Great Falls', s: 'MT', lat: 47.5053, lng: -111.3008 }, { c: 'Bozeman', s: 'MT', lat: 45.677, lng: -111.0429 },
   { c: 'Lincoln', s: 'NE', lat: 40.8136, lng: -96.7026 }, { c: 'Grand Island', s: 'NE', lat: 40.9264, lng: -98.342 }, { c: 'Kearney', s: 'NE', lat: 40.6994, lng: -99.0817 },
-  { c: 'Reno', s: 'NV', lat: 39.5296, lng: -119.8138 }, { c: 'Las Vegas', s: 'NV', lat: 36.1699, lng: -115.1398 }, { c: 'Elko', s: 'NV', lat: 40.8324, lng: -115.7631 },
+  { c: 'Reno', s: 'NV', lat: 39.5296, lng: -119.8138 }, { c: 'Fallon', s: 'NV', lat: 39.4735, lng: -118.7774 }, { c: 'Elko', s: 'NV', lat: 40.8324, lng: -115.7631 },
   { c: 'Concord', s: 'NH', lat: 43.2081, lng: -71.5376 }, { c: 'Manchester', s: 'NH', lat: 42.9956, lng: -71.4548 }, { c: 'Keene', s: 'NH', lat: 42.9337, lng: -72.2781 },
   { c: 'Trenton', s: 'NJ', lat: 40.2171, lng: -74.7429 }, { c: 'Vineland', s: 'NJ', lat: 39.4864, lng: -75.0257 }, { c: 'New Brunswick', s: 'NJ', lat: 40.4862, lng: -74.4518 },
   { c: 'Albuquerque', s: 'NM', lat: 35.0844, lng: -106.6504 }, { c: 'Las Cruces', s: 'NM', lat: 32.3199, lng: -106.7637 }, { c: 'Roswell', s: 'NM', lat: 33.3943, lng: -104.523 },
   { c: 'Syracuse', s: 'NY', lat: 43.0481, lng: -76.1474 }, { c: 'Rochester', s: 'NY', lat: 43.1566, lng: -77.6088 }, { c: 'Batavia', s: 'NY', lat: 42.9981, lng: -78.1875 },
-  { c: 'Raleigh', s: 'NC', lat: 35.7796, lng: -78.6382 }, { c: 'Greenville', s: 'NC', lat: 35.6127, lng: -77.3664 }, { c: 'Charlotte', s: 'NC', lat: 35.2271, lng: -80.8431 },
+  { c: 'Raleigh', s: 'NC', lat: 35.7796, lng: -78.6382 }, { c: 'Greenville', s: 'NC', lat: 35.6127, lng: -77.3664 }, { c: 'Rocky Mount', s: 'NC', lat: 35.9382, lng: -77.7905 },
   { c: 'Fargo', s: 'ND', lat: 46.8772, lng: -96.7898 }, { c: 'Bismarck', s: 'ND', lat: 46.8083, lng: -100.7837 }, { c: 'Grand Forks', s: 'ND', lat: 47.9253, lng: -97.0329 },
   { c: 'Columbus', s: 'OH', lat: 39.9612, lng: -82.9988 }, { c: 'Dayton', s: 'OH', lat: 39.7589, lng: -84.1916 }, { c: 'Toledo', s: 'OH', lat: 41.6528, lng: -83.5379 },
-  { c: 'Oklahoma City', s: 'OK', lat: 35.4676, lng: -97.5164 }, { c: 'Tulsa', s: 'OK', lat: 36.154, lng: -95.9928 }, { c: 'Enid', s: 'OK', lat: 36.3956, lng: -97.8784 },
-  { c: 'Salem', s: 'OR', lat: 44.9429, lng: -123.0351 }, { c: 'Pendleton', s: 'OR', lat: 45.6721, lng: -118.7886 }, { c: 'Medford', s: 'OR', lat: 42.3265, lng: -122.8756 },
+  { c: 'Oklahoma City', s: 'OK', lat: 35.4676, lng: -97.5164 }, { c: 'Enid', s: 'OK', lat: 36.3956, lng: -97.8784 }, { c: 'Altus', s: 'OK', lat: 34.6381, lng: -99.334 },
+  { c: 'Salem', s: 'OR', lat: 44.9429, lng: -123.0351 }, { c: 'Pendleton', s: 'OR', lat: 45.6721, lng: -118.7886 }, { c: 'Hermiston', s: 'OR', lat: 45.8404, lng: -119.2895 },
   { c: 'Harrisburg', s: 'PA', lat: 40.2732, lng: -76.8867 }, { c: 'Lancaster', s: 'PA', lat: 40.0379, lng: -76.3055 }, { c: 'State College', s: 'PA', lat: 40.7934, lng: -77.86 },
   { c: 'Providence', s: 'RI', lat: 41.824, lng: -71.4128 }, { c: 'Warwick', s: 'RI', lat: 41.7001, lng: -71.4162 }, { c: 'Kingston', s: 'RI', lat: 41.4801, lng: -71.5228 },
-  { c: 'Columbia', s: 'SC', lat: 34.0007, lng: -81.0348 }, { c: 'Florence', s: 'SC', lat: 34.1954, lng: -79.7626 }, { c: 'Greenville', s: 'SC', lat: 34.8526, lng: -82.394 },
+  { c: 'Columbia', s: 'SC', lat: 34.0007, lng: -81.0348 }, { c: 'Florence', s: 'SC', lat: 34.1954, lng: -79.7626 }, { c: 'Orangeburg', s: 'SC', lat: 33.4918, lng: -80.8557 },
   { c: 'Sioux Falls', s: 'SD', lat: 43.5446, lng: -96.7311 }, { c: 'Brookings', s: 'SD', lat: 44.3114, lng: -96.7984 }, { c: 'Aberdeen', s: 'SD', lat: 45.4647, lng: -98.4865 },
-  { c: 'Nashville', s: 'TN', lat: 36.1627, lng: -86.7816 }, { c: 'Jackson', s: 'TN', lat: 35.6145, lng: -88.8139 }, { c: 'Knoxville', s: 'TN', lat: 35.9606, lng: -83.9207 },
-  { c: 'Lubbock', s: 'TX', lat: 33.5779, lng: -101.8552 }, { c: 'Amarillo', s: 'TX', lat: 35.222, lng: -101.8313 }, { c: 'College Station', s: 'TX', lat: 30.628, lng: -96.3344 }, { c: 'Weslaco', s: 'TX', lat: 26.1595, lng: -97.9908 },
+  { c: 'Nashville', s: 'TN', lat: 36.1627, lng: -86.7816 }, { c: 'Jackson', s: 'TN', lat: 35.6145, lng: -88.8139 }, { c: 'Union City', s: 'TN', lat: 36.4243, lng: -89.0570 },
+  { c: 'Lubbock', s: 'TX', lat: 33.5779, lng: -101.8552 }, { c: 'Amarillo', s: 'TX', lat: 35.222, lng: -101.8313 }, { c: 'College Station', s: 'TX', lat: 30.628, lng: -96.3344 },
   { c: 'Salt Lake City', s: 'UT', lat: 40.7608, lng: -111.891 }, { c: 'Logan', s: 'UT', lat: 41.7355, lng: -111.8344 }, { c: 'St. George', s: 'UT', lat: 37.0965, lng: -113.5684 },
   { c: 'Burlington', s: 'VT', lat: 44.4759, lng: -73.2121 }, { c: 'Montpelier', s: 'VT', lat: 44.2601, lng: -72.5754 }, { c: 'Rutland', s: 'VT', lat: 43.6106, lng: -72.9726 },
   { c: 'Richmond', s: 'VA', lat: 37.5407, lng: -77.436 }, { c: 'Blacksburg', s: 'VA', lat: 37.2296, lng: -80.4139 }, { c: 'Harrisonburg', s: 'VA', lat: 38.4496, lng: -78.8689 },
@@ -58,40 +60,53 @@ export const US_CITIES: City[] = [
 ];
 
 export type Product = {
-  name: string; brand: string; category: 'SEEDS' | 'PESTICIDES' | 'FERTILIZER' | 'TOOLS';
-  unit: string; price: number; weight: number; img: string;
+  name: string;
+  brand: string;
+  category: 'SEEDS' | 'PESTICIDES' | 'FERTILIZER' | 'TOOLS';
+  unit: string;
+  price: number;
+  weight: number; // kg per unit
+  imageKey: string; // maps to an in-app illustration (web/app/lib/productArt)
+  description: string;
+  rating: number; // 0-5
+  reviews: number;
 };
 
-const IMG = (kw: string) => `https://loremflickr.com/320/240/${kw}`;
-
 export const PRODUCTS: Product[] = [
-  // Seed & seed treatment
-  { name: 'DKC62-08 Corn Seed', brand: 'DEKALB', category: 'SEEDS', unit: 'bag (80k)', price: 265, weight: 22, img: IMG('corn,seed') },
-  { name: 'P22T09 Soybean Seed', brand: 'Pioneer', category: 'SEEDS', unit: 'bag', price: 62, weight: 25, img: IMG('soybean,field') },
-  { name: 'SG-800 Sorghum Hybrid', brand: 'Seitec', category: 'SEEDS', unit: 'bag', price: 48, weight: 20, img: IMG('sorghum,grain') },
-  { name: 'Premium Alfalfa Blend', brand: 'FBN', category: 'SEEDS', unit: 'bag', price: 210, weight: 25, img: IMG('alfalfa,hay') },
-  { name: 'Winter Wheat Seed', brand: 'AgriPro', category: 'SEEDS', unit: 'bag', price: 22, weight: 27, img: IMG('wheat,seed') },
-  // Crop protection
-  { name: 'Roundup PowerMAX 3', brand: 'Bayer', category: 'PESTICIDES', unit: '2.5 gal jug', price: 125, weight: 11, img: IMG('herbicide,sprayer') },
-  { name: 'Atrazine 4L', brand: 'Generic', category: 'PESTICIDES', unit: '2.5 gal jug', price: 42, weight: 11, img: IMG('cornfield,spray') },
-  { name: 'Warrior II Insecticide', brand: 'Syngenta', category: 'PESTICIDES', unit: 'gallon', price: 185, weight: 4, img: IMG('insecticide,crop') },
-  { name: 'Headline AMP Fungicide', brand: 'BASF', category: 'PESTICIDES', unit: '2.5 gal jug', price: 305, weight: 11, img: IMG('fungicide,farm') },
-  { name: 'Prowl H2O Herbicide', brand: 'BASF', category: 'PESTICIDES', unit: '2.5 gal jug', price: 68, weight: 11, img: IMG('herbicide,field') },
-  { name: 'Class Act Adjuvant', brand: 'WinField', category: 'PESTICIDES', unit: '2.5 gallon', price: 35, weight: 11, img: IMG('agriculture,sprayer') },
-  // Crop nutrition / fertilizer
-  { name: 'Urea 46-0-0', brand: 'FBN', category: 'FERTILIZER', unit: '50 lb bag', price: 28, weight: 23, img: IMG('fertilizer,granules') },
-  { name: '10-34-0 Liquid Starter', brand: 'FBN', category: 'FERTILIZER', unit: 'gallon', price: 6, weight: 5, img: IMG('fertilizer,liquid') },
-  { name: 'Potash 0-0-60', brand: 'FBN', category: 'FERTILIZER', unit: '50 lb bag', price: 32, weight: 23, img: IMG('potash,soil') },
-  { name: 'Ammonium Sulfate 21-0-0', brand: 'FBN', category: 'FERTILIZER', unit: '50 lb bag', price: 26, weight: 23, img: IMG('fertilizer,farm') },
-  { name: 'Farmers First Biostimulant', brand: 'FBN', category: 'FERTILIZER', unit: 'gallon', price: 44, weight: 4, img: IMG('plant,nutrient') },
-  { name: 'Pelletized Lime', brand: 'Generic', category: 'FERTILIZER', unit: '40 lb bag', price: 8, weight: 18, img: IMG('soil,lime') },
-  // Tools & equipment
-  { name: '4-Gallon Backpack Sprayer', brand: 'Chapin', category: 'TOOLS', unit: 'each', price: 89, weight: 5, img: IMG('backpack,sprayer') },
-  { name: 'Soil Test Kit (NPK + pH)', brand: 'Luster Leaf', category: 'TOOLS', unit: 'kit', price: 24, weight: 0.5, img: IMG('soil,test') },
-  { name: 'Bypass Pruning Shears', brand: 'Fiskars', category: 'TOOLS', unit: 'each', price: 19, weight: 0.4, img: IMG('pruning,shears') },
-  { name: 'Drip Irrigation Starter Kit', brand: 'Rain Bird', category: 'TOOLS', unit: 'kit', price: 115, weight: 6, img: IMG('irrigation,drip') },
-  { name: 'Galvanized Fencing Wire', brand: 'Generic', category: 'TOOLS', unit: 'roll', price: 58, weight: 15, img: IMG('fence,wire') },
-  { name: 'Steel Hand Trowel', brand: 'Corona', category: 'TOOLS', unit: 'each', price: 12, weight: 0.5, img: IMG('garden,trowel') },
+  // ---- Seed & seed treatment ----
+  { name: 'DKC62-08 Corn Seed', brand: 'DEKALB', category: 'SEEDS', unit: 'bag (80k)', price: 289, weight: 22, imageKey: 'corn', rating: 4.8, reviews: 214, description: '112-day RM triple-stack hybrid with strong stalks and top-end yield.' },
+  { name: 'P1197AM Corn Seed', brand: 'Pioneer', category: 'SEEDS', unit: 'bag (80k)', price: 305, weight: 22, imageKey: 'corn', rating: 4.7, reviews: 168, description: 'High-yield Optimum AcreMax corn for productive, well-drained ground.' },
+  { name: 'AG38X8 Soybean Seed', brand: 'Asgrow', category: 'SEEDS', unit: 'bag (140k)', price: 68, weight: 25, imageKey: 'soybean', rating: 4.6, reviews: 142, description: 'XtendFlex 3.8 maturity soybean with excellent standability.' },
+  { name: 'P22T09 Soybean Seed', brand: 'Pioneer', category: 'SEEDS', unit: 'bag (140k)', price: 64, weight: 25, imageKey: 'soybean', rating: 4.5, reviews: 97, description: 'Enlist E3 2.2 maturity — clean fields and consistent bushels.' },
+  { name: 'WB9590 Winter Wheat', brand: 'WestBred', category: 'SEEDS', unit: '50 lb bag', price: 24, weight: 23, imageKey: 'wheat', rating: 4.6, reviews: 88, description: 'Hard red winter wheat with strong disease package and test weight.' },
+  { name: 'Sorghum SP7868 Hybrid', brand: 'Sorghum Partners', category: 'SEEDS', unit: 'bag (50 lb)', price: 52, weight: 23, imageKey: 'sorghum', rating: 4.4, reviews: 54, description: 'Medium-maturity grain sorghum bred for drought resilience.' },
+  { name: 'WL 372HQ Alfalfa', brand: 'W-L Alfalfas', category: 'SEEDS', unit: '50 lb bag', price: 245, weight: 23, imageKey: 'alfalfa', rating: 4.7, reviews: 61, description: 'High-quality, high-yielding alfalfa with excellent persistence.' },
+  { name: 'Elbon Cereal Rye', brand: 'Green Cover', category: 'SEEDS', unit: '50 lb bag', price: 21, weight: 23, imageKey: 'covercrop', rating: 4.5, reviews: 73, description: 'Reliable cover-crop rye for erosion control and weed suppression.' },
+  // ---- Crop protection ----
+  { name: 'Roundup PowerMAX 3', brand: 'Bayer', category: 'PESTICIDES', unit: '2.5 gal jug', price: 132, weight: 11, imageKey: 'herbicide', rating: 4.8, reviews: 402, description: 'Concentrated glyphosate for broad-spectrum burndown and in-crop weed control.' },
+  { name: 'Enlist One Herbicide', brand: 'Corteva', category: 'PESTICIDES', unit: '2.5 gal jug', price: 158, weight: 11, imageKey: 'herbicide', rating: 4.6, reviews: 176, description: '2,4-D choline with near-zero volatility for Enlist crops.' },
+  { name: 'Liberty 280 SL', brand: 'BASF', category: 'PESTICIDES', unit: '2.5 gal jug', price: 189, weight: 11, imageKey: 'herbicide', rating: 4.5, reviews: 133, description: 'Glufosinate contact herbicide for resistant broadleaf and grass weeds.' },
+  { name: 'Halex GT Herbicide', brand: 'Syngenta', category: 'PESTICIDES', unit: '2.5 gal jug', price: 214, weight: 11, imageKey: 'herbicide', rating: 4.4, reviews: 71, description: 'Three modes of action for post-emergence corn weed control.' },
+  { name: 'Warrior II with Zeon', brand: 'Syngenta', category: 'PESTICIDES', unit: 'gallon', price: 196, weight: 4, imageKey: 'insecticide', rating: 4.6, reviews: 118, description: 'Lambda-cyhalothrin insecticide for fast knockdown of key pests.' },
+  { name: 'Headline AMP Fungicide', brand: 'BASF', category: 'PESTICIDES', unit: '2.5 gal jug', price: 318, weight: 11, imageKey: 'fungicide', rating: 4.7, reviews: 96, description: 'Dual-active fungicide delivering disease control plus plant-health benefits.' },
+  { name: 'Class Act Ridion Adjuvant', brand: 'WinField United', category: 'PESTICIDES', unit: '2.5 gallon', price: 39, weight: 11, imageKey: 'adjuvant', rating: 4.3, reviews: 64, description: 'Water-conditioning adjuvant that improves herbicide performance.' },
+  // ---- Crop nutrition / fertilizer ----
+  { name: 'Urea 46-0-0', brand: 'Nutrien', category: 'FERTILIZER', unit: '50 lb bag', price: 29, weight: 23, imageKey: 'fertilizer', rating: 4.6, reviews: 210, description: 'High-analysis nitrogen source for row crops and pasture.' },
+  { name: 'Potash 0-0-60', brand: 'Nutrien', category: 'FERTILIZER', unit: '50 lb bag', price: 33, weight: 23, imageKey: 'fertilizer', rating: 4.5, reviews: 145, description: 'Muriate of potash — essential potassium for yield and stress tolerance.' },
+  { name: 'MicroEssentials MESZ', brand: 'Mosaic', category: 'FERTILIZER', unit: '50 lb bag', price: 41, weight: 23, imageKey: 'fertilizer', rating: 4.7, reviews: 132, description: 'N-P-S-Zn granule with uniform nutrient distribution across the field.' },
+  { name: '10-34-0 Liquid Starter', brand: 'The Andersons', category: 'FERTILIZER', unit: 'gallon', price: 6, weight: 5, imageKey: 'liquidfert', rating: 4.4, reviews: 58, description: 'Ammonium polyphosphate starter for early-season root development.' },
+  { name: 'UAN 32-0-0 Solution', brand: 'Yara', category: 'FERTILIZER', unit: 'gallon', price: 4, weight: 5, imageKey: 'liquidfert', rating: 4.5, reviews: 77, description: 'Versatile liquid nitrogen for sidedress and fertigation.' },
+  { name: 'Ammonium Sulfate 21-0-0', brand: 'AdvanSix', category: 'FERTILIZER', unit: '50 lb bag', price: 27, weight: 23, imageKey: 'fertilizer', rating: 4.4, reviews: 63, description: 'Nitrogen plus sulfur, ideal where soils are sulfur-deficient.' },
+  { name: 'Pelletized Ag Lime', brand: 'Calcium Products', category: 'FERTILIZER', unit: '40 lb bag', price: 9, weight: 18, imageKey: 'lime', rating: 4.3, reviews: 49, description: 'Fast-acting pelletized limestone to correct soil pH.' },
+  { name: 'Wolf Trax Zinc DDP', brand: 'Compass Minerals', category: 'FERTILIZER', unit: '10 lb bag', price: 58, weight: 5, imageKey: 'micronutrient', rating: 4.6, reviews: 41, description: 'Dry dispersible zinc that coats dry fertilizer for even micronutrient uptake.' },
+  // ---- Tools & equipment ----
+  { name: '4-Gallon Backpack Sprayer', brand: 'Chapin', category: 'TOOLS', unit: 'each', price: 94, weight: 5, imageKey: 'backpack', rating: 4.6, reviews: 512, description: 'No-leak diaphragm backpack sprayer with padded straps and 3 nozzles.' },
+  { name: '25-Gallon ATV Spot Sprayer', brand: 'Fimco', category: 'TOOLS', unit: 'each', price: 199, weight: 12, imageKey: 'atvsprayer', rating: 4.5, reviews: 187, description: 'ATV-mounted sprayer with 2.2 GPM pump and handgun wand.' },
+  { name: 'Rapitest Soil Test Kit', brand: 'Luster Leaf', category: 'TOOLS', unit: 'kit', price: 26, weight: 0.5, imageKey: 'soiltest', rating: 4.4, reviews: 298, description: '40-test kit for N, P, K and pH — plan fertility before you buy inputs.' },
+  { name: 'Drip Irrigation Starter Kit', brand: 'Rain Bird', category: 'TOOLS', unit: 'kit', price: 119, weight: 6, imageKey: 'drip', rating: 4.7, reviews: 221, description: 'Complete drip kit for efficient, low-pressure row and bed watering.' },
+  { name: 'Bypass Pruning Shears', brand: 'Fiskars', category: 'TOOLS', unit: 'each', price: 21, weight: 0.4, imageKey: 'shears', rating: 4.8, reviews: 640, description: 'Hardened-steel bypass blades for clean cuts on vines and orchards.' },
+  { name: 'Galvanized Field Fence Wire', brand: 'Red Brand', category: 'TOOLS', unit: 'roll (330 ft)', price: 189, weight: 25, imageKey: 'fence', rating: 4.6, reviews: 84, description: 'Class 1 galvanized woven field fence for livestock and boundaries.' },
+  { name: 'Nitrile Chemical Gloves', brand: "Gempler's", category: 'TOOLS', unit: 'pair', price: 14, weight: 0.3, imageKey: 'gloves', rating: 4.5, reviews: 156, description: 'Chemical-resistant nitrile gloves for safe handling of crop inputs.' },
 ];
 
-export const INDUSTRY_SUFFIXES = ['AgriSupply', 'Farm Depot', 'Growers Co-op', 'Ag Center', 'Crop Supply', 'Farm & Ranch'];
+export const INDUSTRY_SUFFIXES = ['AgriSupply', 'Farm Depot', 'Growers Co-op', 'Ag Center', 'Crop Supply', 'Farm & Ranch', 'Grain & Supply', 'Nutrient Co-op'];
