@@ -18,7 +18,10 @@ export function Nav() {
         {ready && user ? (
           <>
             {user.role === 'SHIPPER' && user.shipperType === 'FARMER' && (
-              <Link href="/marketplace">🛒 Marketplace</Link>
+              <>
+                <Link href="/marketplace">🛒 Marketplace</Link>
+                <Link href="/orders">📦 My orders</Link>
+              </>
             )}
             <Link href={dashboardFor(user)}>My dashboard</Link>
             <a

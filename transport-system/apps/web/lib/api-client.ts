@@ -60,12 +60,13 @@ export const api = DEMO
       marketplaceIndustries: (zip?: string) =>
         request<any[]>(`/marketplace/industries${zip ? `?zip=${encodeURIComponent(zip)}` : ''}`),
       marketplaceOrders: () => request<any[]>('/marketplace/orders'),
+      marketplaceOrder: (id: string) => request<any>(`/marketplace/orders/${id}`),
       createOrder: (dto: {
         industryId: string;
         items: { catalogItemId: string; qty: number }[];
         deliverPostalCode?: string;
         deliverAddress?: string;
-      }) => request('/marketplace/orders', { method: 'POST', body: JSON.stringify(dto) }),
+      }) => request<any>('/marketplace/orders', { method: 'POST', body: JSON.stringify(dto) }),
 
       placeBid: (jobId: string, dto: PlaceBidDto) =>
         request(`/jobs/${jobId}/bids`, { method: 'POST', body: JSON.stringify(dto) }),

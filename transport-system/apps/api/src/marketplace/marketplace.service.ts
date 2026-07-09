@@ -163,32 +163,46 @@ export class MarketplaceService {
     return order;
   }
 
+  private readonly orderInclude = {
+    items: true,
+    industry: true,
+    job: { include: { settlement: true, bids: true, trip: true } },
+  };
+
+  /** Attach a combined bill (items + fee + transport once awarded) to an order. */
+  private attachBill<T extends { itemsTotal: number; marketplaceFee: number; job?: any }>(o: T) {
+    const transportFarmer = o.job?.settlement?.farmerTotal ?? 0;
+    return {
+      ...o,
+      bill: {
+        itemsTotal: o.itemsTotal,
+        marketplaceFee: o.marketplaceFee,
+        transportTotal: transportFarmer, // transport price + 4% service fee
+        transportAwarded: !!o.job?.settlement,
+        grandTotal: round2(o.itemsTotal + o.marketplaceFee + transportFarmer),
+      },
+    };
+  }
+
   /** Farmer's orders with items + linked transport job (bids/settlement) for the combined bill. */
   async listOrders(userId: string) {
     const farmer = await this.requireFarmer(userId);
     const orders = await this.prisma.order.findMany({
       where: { farmerId: farmer.id },
-      include: {
-        items: true,
-        industry: true,
-        job: { include: { settlement: true, bids: true, trip: true } },
-      },
+      include: this.orderInclude,
       orderBy: { createdAt: 'desc' },
     });
+    return orders.map((o) => this.attachBill(o));
+  }
 
-    // Attach a combined bill (items + fee + transport once awarded).
-    return orders.map((o) => {
-      const transportFarmer = o.job?.settlement?.farmerTotal ?? 0;
-      return {
-        ...o,
-        bill: {
-          itemsTotal: o.itemsTotal,
-          marketplaceFee: o.marketplaceFee,
-          transportTotal: transportFarmer, // transport price + 4% service fee
-          transportAwarded: !!o.job?.settlement,
-          grandTotal: round2(o.itemsTotal + o.marketplaceFee + transportFarmer),
-        },
-      };
+  /** A single farmer order (for the confirmation / driver-selection page). */
+  async getOrder(userId: string, orderId: string) {
+    const farmer = await this.requireFarmer(userId);
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, farmerId: farmer.id },
+      include: this.orderInclude,
     });
+    if (!order) throw new NotFoundException('Order not found');
+    return this.attachBill(order);
   }
 }

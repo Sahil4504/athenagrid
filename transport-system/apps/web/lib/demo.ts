@@ -72,6 +72,7 @@ export const demoApi = {
   tripLocation: (_id: string, _lat: number, _lng: number) => wait({ ok: true }),
   marketplaceIndustries: (_zip?: string) => wait([] as any[]),
   marketplaceOrders: () => wait([] as any[]),
+  marketplaceOrder: (_id: string) => wait({} as any),
   createOrder: (_dto: {
     industryId: string;
     items: { catalogItemId: string; qty: number }[];

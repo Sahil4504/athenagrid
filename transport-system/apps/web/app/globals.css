@@ -253,6 +253,22 @@ input:focus, select:focus { outline: none; border-color: var(--green-500); box-s
 .empty h3 { margin: 6px 0 8px; color: var(--green-900); }
 .orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 
+/* ---------- order confirmation + driver selection ---------- */
+.bidrow { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.bidrow.rec { border: 2px solid var(--green-500); }
+.bidav { width: 40px; height: 40px; border-radius: 50%; background: var(--green-100); color: var(--green-900); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+
+/* My orders list rows */
+.orow { transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s; }
+.orow:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.orow-hot { border-color: var(--harvest); }
+
+/* Order status badges */
+.badge.st-collect { background: #f1f0ea; color: var(--muted); }
+.badge.st-choose { background: var(--harvest); color: #3a2400; }
+.badge.st-transit { background: #e0f2fe; color: #075985; }
+.badge.st-delivered { background: var(--green-100); color: var(--green-900); }
+
 @media (max-width: 900px) {
   .mkt-grid-wrap { grid-template-columns: 1fr; }
   .mkt-cart { position: static; }

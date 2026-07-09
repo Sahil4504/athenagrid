@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api-client';
 import { useRequireRole } from '../../lib/auth';
@@ -48,7 +47,6 @@ export default function MarketplacePage() {
   const { user, ready } = useRequireRole('SHIPPER');
   const router = useRouter();
   const [industries, setIndustries] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
   const [cart, setCart] = useState<{ industryId: string; name: string; city: string; lines: any[] } | null>(null);
   const [cat, setCat] = useState('ALL');
   const [q, setQ] = useState('');
@@ -65,12 +63,7 @@ export default function MarketplacePage() {
   async function load(zip = deliverZip) {
     setLoading(true);
     try {
-      const [ind, ord] = await Promise.all([
-        api.marketplaceIndustries(zip || undefined),
-        api.marketplaceOrders(),
-      ]);
-      setIndustries(ind);
-      setOrders(ord);
+      setIndustries(await api.marketplaceIndustries(zip || undefined));
     } finally {
       setLoading(false);
     }
@@ -159,14 +152,14 @@ export default function MarketplacePage() {
     if (!cart) return;
     setMsg('');
     try {
-      await api.createOrder({
+      const order = await api.createOrder({
         industryId: cart.industryId,
         items: cart.lines.map((l) => ({ catalogItemId: l.catalogItemId, qty: l.qty })),
         deliverPostalCode: deliverZip || undefined,
       });
       setCart(null);
-      setMsg(`✓ Order placed! A delivery job was posted${deliverZip ? ` to ZIP ${deliverZip}` : ''} — award a carrier on your Farmer dashboard to complete it.`);
-      await load();
+      // Straight to the order confirmation + driver-selection page.
+      router.push(`/orders/view?id=${order.id}`);
     } catch (e: any) {
       setMsg(`Could not place order: ${e.message}`);
     }
@@ -326,36 +319,6 @@ export default function MarketplacePage() {
           </div>
         </aside>
       </div>
-
-      {/* Orders */}
-      {orders.length > 0 && (
-        <section style={{ marginTop: 34 }}>
-          <h2>My orders</h2>
-          <div className="orders">
-            {orders.map((o) => (
-              <div key={o.id} className="card">
-                <div className="between">
-                  <strong>{o.industry?.name}</strong>
-                  <span className={`badge st-${o.job?.status ?? 'PLACED'}`}>{o.job?.status ?? 'PLACED'}</span>
-                </div>
-                <p className="muted" style={{ fontSize: 13, margin: '6px 0' }}>{o.items.map((it: any) => `${it.name} ×${it.qty}`).join(', ')}</p>
-                <table style={{ width: '100%', fontSize: 14 }}>
-                  <tbody>
-                    <tr><td className="muted">Items</td><td style={{ textAlign: 'right' }}>${o.bill.itemsTotal}</td></tr>
-                    <tr><td className="muted">Marketplace fee</td><td style={{ textAlign: 'right' }}>${o.bill.marketplaceFee}</td></tr>
-                    <tr><td className="muted">Transport {o.bill.transportAwarded ? '' : '(pending — award on Farmer dashboard)'}</td>
-                      <td style={{ textAlign: 'right' }}>{o.bill.transportAwarded ? `$${o.bill.transportTotal}` : '—'}</td></tr>
-                    <tr style={{ borderTop: '1px solid var(--line)' }}>
-                      <td style={{ fontWeight: 700, paddingTop: 6 }}>{o.bill.transportAwarded ? 'Grand total' : 'So far'}</td>
-                      <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--green-900)', paddingTop: 6 }}>${o.bill.grandTotal}</td></tr>
-                  </tbody>
-                </table>
-                {!o.bill.transportAwarded && <Link className="btn ghost sm" href="/shipper" style={{ marginTop: 8 }}>Award the delivery →</Link>}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
